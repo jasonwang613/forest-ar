@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0a241c" />
-  <meta name="forest-version" content="2-illustration" />
+  <meta name="forest-version" content="3-dense-hands" />
   <title>林間漫步</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 64 64&apos;><rect fill=&apos;%230a241c&apos; width=&apos;64&apos; height=&apos;64&apos;/><path fill=&apos;%23c8d63a&apos; d=&apos;M32 8 C20 22 18 34 32 56 C46 34 44 22 32 8Z&apos;/><circle cx=&apos;48&apos; cy=&apos;42&apos; r=&apos;5&apos; fill=&apos;%23ef7aa8&apos;/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,6 +20,7 @@
     #cam, #view { position:fixed; inset:0; width:100%; height:100%; }
     #cam { z-index:0; object-fit:cover; display:none; background:#000; }
     body.is-ar #cam { display:block; }
+    body.is-ar.is-front #cam { transform:scaleX(-1); }
     #view { z-index:1; display:block; }
     #hud { position:fixed; z-index:3; inset:0; pointer-events:none; }
     #hud button { pointer-events:auto; }
@@ -29,6 +30,12 @@
       letter-spacing:.12em; padding:10px 16px; border-radius:999px; display:none; cursor:pointer; }
     body.is-in #modeBtn { display:block; }
     #modeBtn:active { transform:scale(.97); }
+    #camBtn { position:absolute; top:max(14px,env(safe-area-inset-top)); left:max(14px,env(safe-area-inset-left));
+      border:1px solid rgba(243,240,216,.35); background:rgba(10,36,28,.55); color:var(--cream);
+      backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-family:inherit; font-size:15px;
+      letter-spacing:.12em; padding:10px 16px; border-radius:999px; display:none; cursor:pointer; }
+    body.is-in.is-ar #camBtn { display:block; }
+    #camBtn:active { transform:scale(.97); }
     #hint, #toast { position:absolute; left:50%; transform:translateX(-50%); text-align:center; padding:8px 16px;
       border-radius:999px; background:rgba(10,36,28,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
       font-size:14px; letter-spacing:.08em; opacity:0; transition:opacity .6s ease; max-width:min(90vw,420px); }
@@ -63,6 +70,7 @@
   <video id="cam" playsinline muted autoplay></video>
   <canvas id="view"></canvas>
   <div id="hud">
+    <button type="button" id="camBtn">切換鏡頭</button>
     <button type="button" id="modeBtn">純森林模式</button>
     <div id="toast" role="status"></div>
     <div id="hint">轉動手機，環顧這片森林</div>
@@ -84,6 +92,7 @@ const $ = (id) => document.getElementById(id);
 const startEl = $('start');
 const enterBtn = $('enter');
 const modeBtn = $('modeBtn');
+const camBtn = $('camBtn');
 const toastEl = $('toast');
 const hintEl = $('hint');
 const videoEl = $('cam');
@@ -105,6 +114,7 @@ const rrng = (r, a, b) => a + r() * (b - a);
 let mode = 'vr';
 let cameraReady = false;
 let mediaStream = null;
+let facing = 'environment';
 let started = false;
 let gotGyro = false;
 let orientEvent = null;
@@ -893,10 +903,10 @@ const skyMat = new THREE.ShaderMaterial({
       vec3 mid = vec3(0.07, 0.16, 0.13);
       vec3 col = mix(mid, dark, smoothstep(-0.2, 0.7, d.y));
       for (int i = 0; i < 4; i++) {
-        float g = pow(max(dot(d, normalize(glowDirs[i])), 0.0), 14.0);
-        float g2 = pow(max(dot(d, normalize(glowDirs[i])), 0.0), 4.5);
-        col += vec3(1.0, 0.88, 0.42) * g * 0.72;
-        col += vec3(0.72, 0.8, 0.38) * g2 * 0.32;
+        float g = pow(max(dot(d, normalize(glowDirs[i])), 0.0), 18.0);
+        float g2 = pow(max(dot(d, normalize(glowDirs[i])), 0.0), 7.0);
+        col += vec3(1.0, 0.88, 0.42) * g * 0.55;
+        col += vec3(0.72, 0.8, 0.38) * g2 * 0.28;
       }
       gl_FragColor = vec4(col, 1.0);
     }
@@ -908,9 +918,9 @@ function makeGlowTex() {
   const c = makeCanvas(256, 256);
   const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-  g.addColorStop(0, 'rgba(255, 236, 150, 0.85)');
-  g.addColorStop(0.22, 'rgba(245, 215, 100, 0.5)');
-  g.addColorStop(0.5, 'rgba(200, 210, 90, 0.22)');
+  g.addColorStop(0, 'rgba(255, 236, 150, 0.72)');
+  g.addColorStop(0.22, 'rgba(245, 215, 100, 0.42)');
+  g.addColorStop(0.5, 'rgba(200, 210, 90, 0.16)');
   g.addColorStop(1, 'rgba(100, 150, 80, 0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 256, 256);
@@ -924,11 +934,11 @@ const glowMat = new THREE.SpriteMaterial({
 for (const dir of GLOW_DIRS) {
   const s = new THREE.Sprite(glowMat);
   s.position.copy(dir).multiplyScalar(20);
-  s.scale.set(16, 17, 1);
+  s.scale.set(11, 12, 1);
   vrGroup.add(s);
   const s2 = new THREE.Sprite(glowMat);
   s2.position.copy(dir).multiplyScalar(14);
-  s2.scale.set(10, 12, 1);
+  s2.scale.set(7, 8, 1);
   vrGroup.add(s2);
 }
 
@@ -939,6 +949,7 @@ const leafUniforms = {
   fogNear: { value: 10 },
   fogFar: { value: 26 },
   rustle: { value: new THREE.Vector4(0, 0, 0, 0) },
+  arOpen: { value: 0 },
 };
 const leafMat = new THREE.ShaderMaterial({
   uniforms: leafUniforms,
@@ -950,10 +961,12 @@ const leafMat = new THREE.ShaderMaterial({
     attribute vec4 aUV;
     attribute vec4 aData;
     attribute vec3 aTint;
+    attribute vec4 aPush;
     uniform float time;
     uniform vec4 rustle;
     uniform float fogNear;
     uniform float fogFar;
+    uniform float arOpen;
     varying vec2 vUv;
     varying vec3 vTint;
     varying float vFog;
@@ -968,8 +981,8 @@ const leafMat = new THREE.ShaderMaterial({
       vec3 right = normalize(cross(worldUp, look));
       if (length(right) < 0.001) right = vec3(1.0, 0.0, 0.0);
       vec3 up = cross(look, right);
-      float c = cos(aData.z);
-      float s = sin(aData.z);
+      float c = cos(aData.z + aPush.z);
+      float s = sin(aData.z + aPush.z);
       vec3 r2 = right * c + up * s;
       vec3 u2 = up * c - right * s;
       float rustleAmt = 0.0;
@@ -980,9 +993,19 @@ const leafMat = new THREE.ShaderMaterial({
       float sway = sin(time * 1.55 + aData.x) * aData.y + sin(time * 3.1 + aData.x * 1.7) * rustleAmt * 0.35;
       float side = sin(time * 8.0 + aData.x) * rustleAmt * 0.55;
       vec3 pos = center
-        + r2 * (position.x * sx + (sway + side) * position.y)
-        + u2 * (position.y * sy)
+        + r2 * (position.x * sx + (sway + side) * position.y + aPush.x)
+        + u2 * (position.y * sy + aPush.y)
         + look * (sin(time * 1.2 + aData.x) * aData.y * 0.12 * position.y);
+      if (arOpen > 0.01) {
+        vec4 clipC = projectionMatrix * viewMatrix * vec4(center, 1.0);
+        if (clipC.w > 0.001) {
+          vec2 ndc = clipC.xy / clipC.w;
+          float ell = length(ndc / vec2(0.40, 0.34));
+          float hole = arOpen * (1.0 - smoothstep(0.55, 1.22, ell));
+          pos += r2 * sign(ndc.x + 0.0001) * hole * 1.15;
+          pos += u2 * sign(ndc.y) * hole * 0.4;
+        }
+      }
       vFog = smoothstep(fogNear, fogFar, length(center - cameraPosition));
       gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
     }
@@ -1004,7 +1027,7 @@ const leafMat = new THREE.ShaderMaterial({
 });
 
 const rustlePoints = [];
-const LEAF_N = 280;
+const LEAF_N = 720;
 const leafGeo = new THREE.PlaneGeometry(1, 1);
 leafGeo.translate(0, 0.5, 0);
 const leaves = new THREE.InstancedMesh(leafGeo, leafMat, LEAF_N);
@@ -1020,7 +1043,16 @@ const dummy = new THREE.Object3D();
 function glowProximity(pos) {
   const n = pos.clone().normalize();
   let best = 0;
-  for (const d of GLOW_DIRS) best = Math.max(best, d.dot(n));
+  for (const d of GLOW_DIRS) {
+    const horiz = new THREE.Vector3(n.x, 0, n.z);
+    const dHoriz = new THREE.Vector3(d.x, 0, d.z);
+    if (horiz.lengthSq() < 1e-6 || dHoriz.lengthSq() < 1e-6) continue;
+    horiz.normalize();
+    dHoriz.normalize();
+    const dy = n.y - d.y;
+    const score = horiz.dot(dHoriz) * Math.exp(-dy * dy * 10);
+    best = Math.max(best, score);
+  }
   return best;
 }
 
@@ -1042,8 +1074,9 @@ function placeLeaf(i, x, y, z, sx, sy, kindPool, tintMul, tilt) {
 
 let li = 0;
 function tryPlace(layer) {
-  const { minD, maxD, y0, y1, scale, n, pool, shade, avoidGlow } = layer;
+  const { minD, maxD, y0, y1, scale, n, pool, shade, avoidGlow, skip } = layer;
   let placed = 0, guard = 0;
+  const skipP = skip == null ? 0.55 : skip;
   while (placed < n && guard++ < n * 8 && li < LEAF_N) {
     const yaw = rand(0, Math.PI * 2);
     const dep = rand(minD, maxD);
@@ -1051,7 +1084,7 @@ function tryPlace(layer) {
     const z = Math.cos(yaw) * dep;
     const y = rand(y0, y1);
     const gp = glowProximity(new THREE.Vector3(x, y, z));
-    if (avoidGlow && gp > avoidGlow && rng() < 0.78) continue;
+    if (avoidGlow && gp > avoidGlow && rng() < skipP) continue;
     const sc = scale * rand(0.75, 1.35);
     placeLeaf(li++, x, y, z, sc, sc * rand(0.9, 1.15), pool, shade, rand(-0.45, 0.45));
     placed++;
@@ -1060,22 +1093,48 @@ function tryPlace(layer) {
 
 const BRIGHT = [...TILE.ovate, ...TILE.lobed, ...TILE.pinnate, ...TILE.fern, ...TILE.flowers, TILE.cluster[0], TILE.cluster[1]];
 const DARK = [11, 12, 13, 14, 15, ...TILE.branch, ...TILE.cluster];
-tryPlace({ minD:13, maxD:20, y0:-1.2, y1:6.5, scale:3.6, n:88,
-  pool:DARK, shade:0.85, avoidGlow:0.72 });
-tryPlace({ minD:7, maxD:13, y0:-1.0, y1:5.2, scale:2.5, n:78,
-  pool:BRIGHT, shade:1.08, avoidGlow:0.80 });
-tryPlace({ minD:3.6, maxD:7, y0:-0.5, y1:3.6, scale:1.9, n:50,
-  pool:BRIGHT, shade:1.12, avoidGlow:0.86 });
-tryPlace({ minD:2.2, maxD:3.6, y0:-0.3, y1:2.2, scale:1.35, n:24,
-  pool:[...TILE.flowers, ...TILE.fern, TILE.ovate[0], TILE.ovate[1]], shade:1.15, avoidGlow:0.90 });
+tryPlace({ minD:11, maxD:20, y0:-1.8, y1:7.6, scale:3.4, n:160,
+  pool:DARK, shade:0.9, avoidGlow:0.94, skip:0.32 });
+tryPlace({ minD:6.5, maxD:12, y0:-1.5, y1:6.2, scale:2.4, n:155,
+  pool:BRIGHT, shade:1.05, avoidGlow:0.95, skip:0.28 });
+tryPlace({ minD:3.6, maxD:6.8, y0:-1.0, y1:4.6, scale:1.9, n:130,
+  pool:BRIGHT, shade:1.09, avoidGlow:0.965, skip:0.22 });
+tryPlace({ minD:1.8, maxD:3.8, y0:-0.7, y1:3.0, scale:1.35, n:90,
+  pool:[...TILE.flowers, ...TILE.fern, TILE.ovate[0], TILE.ovate[1], TILE.cluster[0]], shade:1.13, avoidGlow:0.975, skip:0.18 });
+tryPlace({ minD:2.0, maxD:8, y0:-2.0, y1:0.55, scale:1.75, n:70,
+  pool:[...TILE.fern, ...TILE.flowers, ...TILE.cluster, TILE.ovate[0]], shade:1.05, avoidGlow:0, skip:0 });
+tryPlace({ minD:3.2, maxD:11, y0:-2.2, y1:0.9, scale:2.15, n:70,
+  pool:[...TILE.fern, ...DARK, ...BRIGHT], shade:0.98, avoidGlow:0, skip:0 });
+tryPlace({ minD:4, maxD:10, y0:0.15, y1:2.6, scale:1.85, n:36,
+  pool:BRIGHT, shade:1.06, avoidGlow:0.985, skip:0.12 });
+{
+  let placed = 0, guard = 0;
+  while (placed < 40 && guard++ < 800 && li < LEAF_N) {
+    const yaw = rand(0, Math.PI * 2);
+    const dep = rand(5, 16);
+    const x = Math.sin(yaw) * dep;
+    const z = Math.cos(yaw) * dep;
+    const y = rand(-0.4, 5.5);
+    const gp = glowProximity(new THREE.Vector3(x, y, z));
+    if (gp < 0.86 || gp > 0.992) continue;
+    const sc = rand(1.5, 2.6);
+    placeLeaf(li++, x, y, z, sc, sc * rand(0.9, 1.15), BRIGHT, 1.08, rand(-0.4, 0.4));
+    placed++;
+  }
+}
 while (li < LEAF_N) {
-  tryPlace({ minD:8, maxD:17, y0:-0.8, y1:5.5, scale:2.5, n:1,
-    pool:DARK, shade:0.88, avoidGlow:0.78 });
+  tryPlace({ minD:2.4, maxD:15, y0:-1.6, y1:6.8, scale:1.85, n:1,
+    pool:[...DARK, ...BRIGHT], shade:0.98, avoidGlow:0.96, skip:0.22 });
 }
 
+const aPush = new Float32Array(LEAF_N * 4);
+const pushVel = new Float32Array(LEAF_N * 4);
+const pushAttr = new THREE.InstancedBufferAttribute(aPush, 4);
+pushAttr.setUsage(THREE.DynamicDrawUsage);
 leaves.geometry.setAttribute('aUV', new THREE.InstancedBufferAttribute(aUV, 4));
 leaves.geometry.setAttribute('aData', new THREE.InstancedBufferAttribute(aData, 4));
 leaves.geometry.setAttribute('aTint', new THREE.InstancedBufferAttribute(aTint, 3));
+leaves.geometry.setAttribute('aPush', pushAttr);
 leaves.instanceMatrix.needsUpdate = true;
 scene.add(leaves);
 
@@ -1098,23 +1157,30 @@ function addFrameLeaf(tileIdx, x, y, z, sx, sy, rotZ, sway) {
   m.position.set(x, y, z);
   m.rotation.z = rotZ;
   m.scale.set(sx, sy, 1);
-  m.userData = { bx:x, by:y, bz:z, br:rotZ, sway, phase:rand(0, 6.28) };
+  m.userData = { bx:x, by:y, bz:z, br:rotZ, sway, phase:rand(0, 6.28), px:0, py:0, pr:0, vx:0, vy:0, vr:0 };
   frameGroup.add(m);
   frameLeaves.push(m);
 }
 const framePlan = [
-  [0, -0.35, 1.05, -1.45, 0.72, 0.62, Math.PI, 0.03],
-  [3, 0.32, 1.08, -1.42, 0.68, 0.58, Math.PI + 0.15, 0.04],
-  [2, 0.62, 0.85, -1.4, 0.6, 0.7, -2.2, 0.03],
-  [4, 0.72, 0.05, -1.38, 0.55, 0.85, -1.55, 0.04],
-  [8, 0.70, -0.7, -1.36, 0.55, 0.7, -0.4, 0.03],
-  [5, 0.22, -1.12, -1.34, 0.62, 0.58, 0.05, 0.04],
-  [1, -0.28, -1.14, -1.34, 0.7, 0.6, -0.1, 0.03],
-  [9, -0.70, -0.65, -1.36, 0.55, 0.72, 0.35, 0.03],
-  [3, -0.72, 0.15, -1.38, 0.55, 0.82, 1.55, 0.04],
-  [7, -0.62, 0.8, -1.42, 0.6, 0.65, 2.3, 0.03],
-  [8, 0.55, 1.02, -1.5, 0.48, 0.5, Math.PI - 0.3, 0.03],
-  [5, -0.5, -1.08, -1.5, 0.5, 0.48, 0.2, 0.03],
+  [0, -0.42, 1.08, -1.42, 0.78, 0.68, Math.PI, 0.03],
+  [3, 0.08, 1.12, -1.4, 0.72, 0.62, Math.PI - 0.1, 0.04],
+  [1, 0.46, 1.08, -1.42, 0.74, 0.64, Math.PI + 0.2, 0.03],
+  [7, -0.7, 0.95, -1.38, 0.62, 0.7, 2.5, 0.03],
+  [2, 0.7, 0.92, -1.38, 0.62, 0.7, -2.4, 0.03],
+  [4, 0.78, 0.35, -1.36, 0.58, 0.9, -1.55, 0.04],
+  [5, 0.80, -0.25, -1.34, 0.58, 0.82, -1.45, 0.03],
+  [3, -0.80, 0.35, -1.36, 0.58, 0.9, 1.55, 0.04],
+  [7, -0.80, -0.22, -1.34, 0.58, 0.82, 1.45, 0.03],
+  [8, 0.72, -0.72, -1.34, 0.6, 0.72, -0.4, 0.03],
+  [5, 0.28, -1.14, -1.32, 0.7, 0.62, 0.08, 0.04],
+  [1, -0.22, -1.16, -1.32, 0.74, 0.62, -0.08, 0.03],
+  [9, -0.72, -0.7, -1.34, 0.6, 0.72, 0.4, 0.03],
+  [8, 0.5, 1.0, -1.52, 0.5, 0.52, Math.PI - 0.25, 0.03],
+  [5, -0.52, -1.06, -1.5, 0.52, 0.5, 0.15, 0.03],
+  [0, 0.85, 0.65, -1.48, 0.48, 0.58, -2.0, 0.03],
+  [6, -0.85, 0.65, -1.48, 0.48, 0.58, 2.0, 0.03],
+  [2, 0.88, -0.5, -1.46, 0.5, 0.6, -0.6, 0.03],
+  [3, -0.88, -0.5, -1.46, 0.5, 0.6, 0.6, 0.03],
 ];
 for (const p of framePlan) addFrameLeaf(...p);
 
@@ -1391,6 +1457,233 @@ function updateAnimals(dt, time) {
     }
   }
 }
+
+/* Hand parting: MediaPipe Tasks Vision HandLandmarker, AR only, fail-safe. */
+const HAND_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const HAND_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const HAND_TIP_IDX = [0, 5, 8, 9, 12, 16, 20];
+
+let handLandmarker = null;
+let handsReady = false;
+let handsFailed = false;
+let handsLoading = false;
+let handsScreen = [];
+let prevPalms = [];
+let inferAccum = 0;
+const _proj = new THREE.Vector3();
+
+async function ensureHandTracker() {
+  if (handsReady || handsFailed || handsLoading) return;
+  handsLoading = true;
+  try {
+    const mod = await import(HAND_CDN + '/vision_bundle.mjs');
+    const vision = await mod.FilesetResolver.forVisionTasks(HAND_CDN + '/wasm');
+    const opts = (delegate) => ({
+      baseOptions: { modelAssetPath: HAND_MODEL, delegate },
+      runningMode: 'VIDEO',
+      numHands: 2,
+      minHandDetectionConfidence: 0.5,
+      minHandPresenceConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+    try {
+      handLandmarker = await mod.HandLandmarker.createFromOptions(vision, opts('GPU'));
+    } catch (err) {
+      handLandmarker = await mod.HandLandmarker.createFromOptions(vision, opts('CPU'));
+    }
+    handsReady = true;
+  } catch (err) {
+    handsFailed = true;
+    handLandmarker = null;
+    console.warn('Hand tracking unavailable', err);
+  } finally {
+    handsLoading = false;
+  }
+}
+
+function videoToScreen(nx, ny) {
+  const vw = videoEl.videoWidth || 1;
+  const vh = videoEl.videoHeight || 1;
+  const sw = window.innerWidth;
+  const sh = window.innerHeight;
+  const va = vw / vh;
+  const sa = sw / sh;
+  let fw, fh, fx, fy;
+  if (va > sa) { fh = sh; fw = sh * va; fx = (sw - fw) * 0.5; fy = 0; }
+  else { fw = sw; fh = sw / va; fx = 0; fy = (sh - fh) * 0.5; }
+  let x = fx + nx * fw;
+  const y = fy + ny * fh;
+  if (facing === 'user') x = sw - x;
+  return { x, y };
+}
+
+function sampleHands(now, dt) {
+  if (mode !== 'ar' || !handsReady || !handLandmarker || !videoEl.videoWidth) {
+    if (mode !== 'ar') { handsScreen = []; prevPalms = []; }
+    return;
+  }
+  inferAccum += dt;
+  if (inferAccum < 0.04) return;
+  const step = inferAccum;
+  inferAccum = 0;
+  try {
+    const res = handLandmarker.detectForVideo(videoEl, now);
+    const curr = [];
+    const lms = (res && res.landmarks) ? res.landmarks : [];
+    for (const lm of lms) {
+      const palm = lm[9] || lm[0];
+      if (!palm) continue;
+      const p = videoToScreen(palm.x, palm.y);
+      const tips = [];
+      for (const idx of HAND_TIP_IDX) {
+        if (lm[idx]) tips.push(videoToScreen(lm[idx].x, lm[idx].y));
+      }
+      curr.push({ x: p.x, y: p.y, tips });
+    }
+    const next = [];
+    for (const h of curr) {
+      let vx = 0, vy = 0, best = 1e9;
+      for (const p of prevPalms) {
+        const d = Math.hypot(h.x - p.x, h.y - p.y);
+        if (d < best) {
+          best = d;
+          vx = (h.x - p.x) / Math.max(step, 0.04);
+          vy = (h.y - p.y) / Math.max(step, 0.04);
+        }
+      }
+      next.push({ x: h.x, y: h.y, vx, vy, speed: Math.hypot(vx, vy), tips: h.tips });
+    }
+    handsScreen = next;
+    prevPalms = curr.map((h) => ({ x: h.x, y: h.y }));
+  } catch (err) {
+    /* skip a bad frame; never break the loop */
+  }
+}
+
+function gatherHandPoints() {
+  const pts = [];
+  for (const h of handsScreen) {
+    pts.push(h);
+    if (h.tips) {
+      for (const t of h.tips) pts.push({ x: t.x, y: t.y, vx: h.vx, vy: h.vy, speed: h.speed });
+    }
+  }
+  return pts;
+}
+
+function springAxis(pos, vel, force, dt, spring, damp) {
+  vel += force * dt;
+  vel -= pos * spring * dt;
+  vel *= Math.exp(-damp * dt);
+  pos += vel * dt;
+  return [pos, vel];
+}
+
+function applyPushAtScreen(sx, sy, pts, R, out) {
+  let fx = 0, fy = 0, fa = 0;
+  for (const h of pts) {
+    const dx = sx - h.x;
+    const dy = sy - h.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist >= R) continue;
+    const fall = 1 - dist / R;
+    const fall2 = fall * fall;
+    const boost = 1 + Math.min(h.speed, 2000) / 380;
+    const mag = fall2 * boost;
+    let nx = dx, ny = dy;
+    if (dist < 6) { nx = h.vx || 1; ny = h.vy || 0; const n = Math.hypot(nx, ny) || 1; nx /= n; ny /= n; }
+    else { nx /= dist; ny /= dist; }
+    // Prefer parting sideways when the hand is moving horizontally or waving.
+    if (Math.abs(h.vx) > Math.abs(h.vy) * 0.6) nx = Math.sign(nx || h.vx || 1);
+    fx += nx * mag * 2.4;
+    fy += ny * mag * 1.35;
+    fa += nx * mag * 1.1;
+  }
+  out[0] = fx; out[1] = fy; out[2] = fa;
+}
+
+const _force = [0, 0, 0];
+
+function updateLeafPush(dt) {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const pts = (mode === 'ar' && handsScreen.length) ? gatherHandPoints() : [];
+  const R = 0.28 * Math.min(w, h);
+  const aspect = w / Math.max(h, 1);
+  const fov = THREE.MathUtils.degToRad(camera.fov);
+  const halfH = Math.tan(fov * 0.5);
+
+  if (pts.length) {
+    for (let i = 0; i < leafInfo.length; i++) {
+      const L = leafInfo[i];
+      if (mode === 'ar' && L.depth > 10) continue;
+      _proj.set(L.x, L.y, L.z).project(camera);
+      if (_proj.z >= 1) continue;
+      const sx = (_proj.x * 0.5 + 0.5) * w;
+      const sy = (-_proj.y * 0.5 + 0.5) * h;
+      applyPushAtScreen(sx, sy, pts, R, _force);
+      const ix = i * 4;
+      let px = aPush[ix], py = aPush[ix + 1], pr = aPush[ix + 2];
+      let vx = pushVel[ix], vy = pushVel[ix + 1], vr = pushVel[ix + 2];
+      [px, vx] = springAxis(px, vx, _force[0], dt, 16, 5.2);
+      [py, vy] = springAxis(py, vy, _force[1] * 0.85, dt, 16, 5.2);
+      [pr, vr] = springAxis(pr, vr, _force[2], dt, 18, 5.6);
+      aPush[ix] = Math.max(-2.2, Math.min(2.2, px));
+      aPush[ix + 1] = Math.max(-1.6, Math.min(1.6, py));
+      aPush[ix + 2] = Math.max(-1.2, Math.min(1.2, pr));
+      pushVel[ix] = vx; pushVel[ix + 1] = vy; pushVel[ix + 2] = vr;
+    }
+    pushAttr.needsUpdate = true;
+  } else {
+    let any = false;
+    for (let i = 0; i < LEAF_N; i++) {
+      const ix = i * 4;
+      if (aPush[ix] === 0 && aPush[ix + 1] === 0 && aPush[ix + 2] === 0 &&
+          pushVel[ix] === 0 && pushVel[ix + 1] === 0 && pushVel[ix + 2] === 0) continue;
+      any = true;
+      let px = aPush[ix], py = aPush[ix + 1], pr = aPush[ix + 2];
+      let vx = pushVel[ix], vy = pushVel[ix + 1], vr = pushVel[ix + 2];
+      [px, vx] = springAxis(px, vx, 0, dt, 16, 5.2);
+      [py, vy] = springAxis(py, vy, 0, dt, 16, 5.2);
+      [pr, vr] = springAxis(pr, vr, 0, dt, 18, 5.6);
+      if (Math.abs(px) < 0.002 && Math.abs(vx) < 0.002) { px = 0; vx = 0; }
+      if (Math.abs(py) < 0.002 && Math.abs(vy) < 0.002) { py = 0; vy = 0; }
+      if (Math.abs(pr) < 0.002 && Math.abs(vr) < 0.002) { pr = 0; vr = 0; }
+      aPush[ix] = px; aPush[ix + 1] = py; aPush[ix + 2] = pr;
+      pushVel[ix] = vx; pushVel[ix + 1] = vy; pushVel[ix + 2] = vr;
+    }
+    if (any) pushAttr.needsUpdate = true;
+  }
+
+  for (const m of frameLeaves) {
+    const u = m.userData;
+    let fx = 0, fy = 0, fa = 0;
+    if (pts.length) {
+      const zAbs = Math.abs(u.bz) || 1.4;
+      const hh = halfH * zAbs;
+      const hw = hh * aspect;
+      const sx = (u.bx / hw * 0.5 + 0.5) * w;
+      const sy = (-u.by / hh * 0.5 + 0.5) * h;
+      applyPushAtScreen(sx, sy, pts, R * 1.05, _force);
+      fx = _force[0]; fy = _force[1]; fa = _force[2];
+    }
+    [u.px, u.vx] = springAxis(u.px, u.vx, fx * 0.55, dt, 18, 5.4);
+    [u.py, u.vy] = springAxis(u.py, u.vy, fy * 0.45, dt, 18, 5.4);
+    [u.pr, u.vr] = springAxis(u.pr, u.vr, fa * 0.7, dt, 20, 5.8);
+    u.px = Math.max(-0.55, Math.min(0.55, u.px));
+    u.py = Math.max(-0.35, Math.min(0.35, u.py));
+    u.pr = Math.max(-0.7, Math.min(0.7, u.pr));
+  }
+}
+
+function updateFrameSway(t) {
+  for (const m of frameLeaves) {
+    const u = m.userData;
+    m.rotation.z = u.br + Math.sin(t * 1.6 + u.phase) * u.sway + u.pr;
+    m.position.x = u.bx + Math.sin(t * 1.2 + u.phase) * u.sway * 0.8 + u.px;
+    m.position.y = u.by + u.py;
+  }
+}
 const _zee = new THREE.Vector3(0, 0, 1);
 const _euler = new THREE.Euler();
 const _q0 = new THREE.Quaternion();
@@ -1416,7 +1709,7 @@ function applyDeviceOrientation(event) {
 
 let dragging = false, lastX = 0, lastY = 0;
 const LOOK_YAW = Math.atan2(-GLOW_DIRS[0].x, -GLOW_DIRS[0].z);
-let yaw = LOOK_YAW, pitch = 0.10;
+let yaw = LOOK_YAW, pitch = 0.04;
 
 function onPointerDown(e) {
   if (gotGyro) return;
@@ -1469,18 +1762,25 @@ async function requestOrientationPermission() {
     return false;
   }
 }
-async function requestCamera() {
+async function requestCamera(nextFacing) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no media');
+  const want = nextFacing || facing || 'environment';
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+    video: { facingMode: { ideal: want }, width: { ideal: 1280 }, height: { ideal: 720 } },
     audio: false,
   });
+  if (mediaStream) {
+    try { mediaStream.getTracks().forEach((tr) => tr.stop()); } catch (err) {}
+  }
+  facing = want;
+  document.body.classList.toggle('is-front', facing === 'user');
   videoEl.srcObject = stream;
   videoEl.setAttribute('playsinline', 'true');
   videoEl.muted = true;
   await videoEl.play();
   mediaStream = stream;
   cameraReady = true;
+  ensureHandTracker();
 }
 
 function setMode(next) {
@@ -1488,6 +1788,7 @@ function setMode(next) {
   const isAR = mode === 'ar';
   document.body.classList.toggle('is-ar', isAR);
   vrGroup.visible = !isAR;
+  leafUniforms.arOpen.value = isAR ? 1 : 0;
   if (isAR) {
     renderer.setClearColor(0x000000, 0);
     leafUniforms.fogNear.value = 40;
@@ -1500,10 +1801,13 @@ function setMode(next) {
     }
     leaves.instanceMatrix.needsUpdate = true;
     modeBtn.textContent = '純森林模式';
+    if (cameraReady) ensureHandTracker();
   } else {
     renderer.setClearColor(0x0a2a20, 1);
     leafUniforms.fogNear.value = 10;
     leafUniforms.fogFar.value = 26;
+    handsScreen = [];
+    prevPalms = [];
     for (const L of leafInfo) {
       dummy.position.set(L.x, L.y, L.z);
       dummy.scale.set(L.sx, L.sy, 1);
@@ -1518,11 +1822,23 @@ function setMode(next) {
 modeBtn.addEventListener('click', async () => {
   if (mode === 'ar') { setMode('vr'); return; }
   if (!cameraReady) {
-    try { await requestCamera(); setMode('ar'); }
+    try { await requestCamera(facing || 'environment'); setMode('ar'); showHint('把手伸到鏡頭前撥開葉子'); }
     catch (err) { toast('無法開啟相機，仍使用純森林模式'); }
     return;
   }
   setMode('ar');
+  showHint('把手伸到鏡頭前撥開葉子');
+});
+
+camBtn.addEventListener('click', async () => {
+  if (mode !== 'ar') return;
+  const next = facing === 'user' ? 'environment' : 'user';
+  try {
+    await requestCamera(next);
+    showHint(next === 'user' ? '已切到前鏡頭，把手伸到鏡頭前撥開葉子' : '已切到後鏡頭，把手伸到鏡頭前撥開葉子');
+  } catch (err) {
+    toast('無法切換鏡頭');
+  }
 });
 
 let lastT = performance.now();
@@ -1545,11 +1861,9 @@ function tick(now) {
   } else {
     leafUniforms.rustle.value.w = 0;
   }
-  for (const m of frameLeaves) {
-    const u = m.userData;
-    m.rotation.z = u.br + Math.sin(t * 1.6 + u.phase) * u.sway;
-    m.position.x = u.bx + Math.sin(t * 1.2 + u.phase) * u.sway * 0.8;
-  }
+  sampleHands(now, dt);
+  updateLeafPush(dt);
+  updateFrameSway(t);
   updateAnimals(dt, t);
   const arr = pollen.geometry.attributes.position.array;
   for (let i = 0; i < POLE; i++) {
@@ -1590,7 +1904,8 @@ async function enterForest(forceVR) {
   }
   startEl.classList.add('gone');
   setTimeout(() => { startEl.style.display = 'none'; }, 850);
-  if (gotGyro || gyroOk) showHint('轉動手機，看看葉子後面會不會探出小動物');
+  if (mode === 'ar') showHint('把手伸到鏡頭前撥開葉子');
+  else if (gotGyro || gyroOk) showHint('轉動手機，看看葉子後面會不會探出小動物');
   else {
     setTimeout(() => {
       showHint(gotGyro ? '轉動手機，看看葉子後面會不會探出小動物' : '用手指拖曳畫面，即可轉視角');
@@ -1598,14 +1913,14 @@ async function enterForest(forceVR) {
   }
   requestAnimationFrame(tick);
   document.body.dataset.ready = '1';
-  document.body.dataset.version = '2-illustration';
+  document.body.dataset.version = '3-dense-hands';
 }
 
 enterBtn.addEventListener('click', () => enterForest(false));
 
 function posePreview() {
   yaw = LOOK_YAW;
-  pitch = 0.10;
+  pitch = 0.04;
   startEl.style.display = 'none';
   document.body.classList.add('is-in');
   setMode('vr');
@@ -1657,7 +1972,7 @@ function posePreview() {
   }
   requestAnimationFrame(tick);
   document.body.dataset.ready = '1';
-  document.body.dataset.version = '2-illustration';
+  document.body.dataset.version = '3-dense-hands';
 }
 
 const params = new URLSearchParams(location.search);
