@@ -5,296 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#0c1a10" />
+  <meta name="theme-color" content="#0a241c" />
+  <meta name="forest-version" content="2-illustration" />
   <title>林間漫步</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect fill='%230c1a10' width='64' height='64'/><path fill='%23265c2c' d='M32 6 L52 40 H12 Z'/><rect fill='%234a3424' x='28' y='38' width='8' height='20'/></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 64 64&apos;><rect fill=&apos;%230a241c&apos; width=&apos;64&apos; height=&apos;64&apos;/><path fill=&apos;%23c8d63a&apos; d=&apos;M32 8 C20 22 18 34 32 56 C46 34 44 22 32 8Z&apos;/><circle cx=&apos;48&apos; cy=&apos;42&apos; r=&apos;5&apos; fill=&apos;%23ef7aa8&apos;/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --moss: #0c1a10;
-      --canopy: #163222;
-      --gold: #e6c36a;
-      --gold-dim: #c9a24a;
-      --cream: #f3ead3;
-      --mist: #c5d0bc;
-      --ink: #1a2418;
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
-      overflow: hidden;
-      background: var(--moss);
-      color: var(--cream);
-      font-family: "LXGW WenKai TC", "Noto Serif TC", "Songti TC", serif;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    #cam, #view {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-    #cam {
-      z-index: 0;
-      object-fit: cover;
-      display: none;
-      background: #000;
-    }
-    body.is-ar #cam { display: block; }
-    #view { z-index: 1; display: block; }
-    #hud {
-      position: fixed;
-      z-index: 3;
-      inset: 0;
-      pointer-events: none;
-    }
-    #hud button, #hud .chip {
-      pointer-events: auto;
-    }
-    #modeBtn {
-      position: absolute;
-      top: max(14px, env(safe-area-inset-top));
-      right: max(14px, env(safe-area-inset-right));
-      border: 1px solid rgba(243, 234, 211, 0.35);
-      background: rgba(12, 26, 16, 0.55);
-      color: var(--cream);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      font-family: inherit;
-      font-size: 15px;
-      letter-spacing: 0.12em;
-      padding: 10px 16px;
-      border-radius: 999px;
-      display: none;
-      cursor: pointer;
-    }
-    body.is-in #modeBtn { display: block; }
-    #modeBtn:active { transform: scale(0.97); }
-    #hint, #toast {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(12, 26, 16, 0.5);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      font-size: 14px;
-      letter-spacing: 0.08em;
-      opacity: 0;
-      transition: opacity 0.6s ease;
-      max-width: min(90vw, 420px);
-    }
-    #hint {
-      bottom: max(28px, env(safe-area-inset-bottom));
-    }
-    #toast {
-      top: max(64px, calc(env(safe-area-inset-top) + 56px));
-    }
-    #hint.show, #toast.show { opacity: 1; }
-    #start {
-      position: fixed;
-      inset: 0;
-      z-index: 5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 0 28px max(48px, env(safe-area-inset-bottom));
-      overflow: hidden;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(230, 195, 106, 0.18), transparent 60%),
-        radial-gradient(ellipse 70% 60% at 20% 80%, rgba(18, 50, 28, 0.9), transparent 50%),
-        linear-gradient(180deg, #1a3344 0%, #243c32 28%, #0f2418 62%, #08140c 100%);
-    }
-    #start.gone {
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.8s ease;
-    }
-    .sun {
-      position: absolute;
-      top: 12%;
-      right: 16%;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #f8e7a8 0%, #e6c36a 40%, rgba(230, 195, 106, 0) 72%);
-      filter: blur(1px);
-      opacity: 0.85;
-    }
-    .rays {
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(
-          105deg,
-          transparent 0 18px,
-          rgba(243, 234, 211, 0.035) 18px 22px
-        );
-      animation: drift 28s linear infinite;
-      mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 75%);
-      -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 75%);
-      pointer-events: none;
-    }
-    @keyframes drift {
-      from { transform: translateX(0); }
-      to { transform: translateX(-80px); }
-    }
-    .mist {
-      position: absolute;
-      left: -10%;
-      right: -10%;
-      bottom: 18%;
-      height: 40%;
-      background: radial-gradient(ellipse at center, rgba(197, 208, 188, 0.28), transparent 70%);
-      filter: blur(16px);
-      animation: mistMove 12s ease-in-out infinite alternate;
-      pointer-events: none;
-    }
-    @keyframes mistMove {
-      from { transform: translateX(-4%) scale(1); }
-      to { transform: translateX(4%) scale(1.05); }
-    }
-    .silhouettes {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      height: 46%;
-      pointer-events: none;
-    }
-    .silhouettes svg { width: 100%; height: 100%; display: block; }
-    .grain {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.14;
-      mix-blend-mode: overlay;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
-    }
-    .copy {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      margin-bottom: 28px;
-      animation: rise 1.2s ease both;
-    }
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .eyebrow {
-      letter-spacing: 0.42em;
-      font-size: 12px;
-      color: var(--gold);
-      margin-bottom: 10px;
-    }
-    h1 {
-      font-weight: 700;
-      font-size: clamp(42px, 11vw, 68px);
-      letter-spacing: 0.22em;
-      margin: 0 0 12px 0.22em;
-      text-shadow: 0 8px 28px rgba(0,0,0,0.45);
-    }
-    .sub {
-      font-size: 16px;
-      letter-spacing: 0.16em;
-      color: var(--mist);
-      line-height: 1.8;
-    }
-    #enter {
-      position: relative;
-      z-index: 2;
-      width: min(86vw, 360px);
-      border: 1px solid var(--gold);
-      background: linear-gradient(180deg, #2a4a30 0%, #163222 100%);
-      color: var(--cream);
-      font-family: inherit;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.28em;
-      padding: 16px 24px 16px 36px;
-      border-radius: 999px;
-      box-shadow: 0 0 0 1px rgba(230,195,106,0.2), 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(243,234,211,0.2);
-      cursor: pointer;
-      animation: rise 1.2s ease 0.15s both, pulse 2.8s ease-in-out 1.4s infinite;
-    }
-    #enter:disabled {
-      opacity: 0.7;
-      animation: none;
-    }
-    #enter:active { transform: scale(0.98); }
+    :root { --moss:#0a241c; --gold:#e8e47a; --cream:#f3f0d8; --mist:#c5d8c0; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { margin:0; width:100%; height:100%; height:100dvh; overflow:hidden; background:var(--moss); color:var(--cream);
+      font-family:"LXGW WenKai TC","Noto Serif TC","Songti TC",serif; touch-action:none; user-select:none; -webkit-user-select:none; }
+    #cam, #view { position:fixed; inset:0; width:100%; height:100%; }
+    #cam { z-index:0; object-fit:cover; display:none; background:#000; }
+    body.is-ar #cam { display:block; }
+    #view { z-index:1; display:block; }
+    #hud { position:fixed; z-index:3; inset:0; pointer-events:none; }
+    #hud button { pointer-events:auto; }
+    #modeBtn { position:absolute; top:max(14px,env(safe-area-inset-top)); right:max(14px,env(safe-area-inset-right));
+      border:1px solid rgba(243,240,216,.35); background:rgba(10,36,28,.55); color:var(--cream);
+      backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-family:inherit; font-size:15px;
+      letter-spacing:.12em; padding:10px 16px; border-radius:999px; display:none; cursor:pointer; }
+    body.is-in #modeBtn { display:block; }
+    #modeBtn:active { transform:scale(.97); }
+    #hint, #toast { position:absolute; left:50%; transform:translateX(-50%); text-align:center; padding:8px 16px;
+      border-radius:999px; background:rgba(10,36,28,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+      font-size:14px; letter-spacing:.08em; opacity:0; transition:opacity .6s ease; max-width:min(90vw,420px); }
+    #hint { bottom:max(28px,env(safe-area-inset-bottom)); }
+    #toast { top:max(64px,calc(env(safe-area-inset-top) + 56px)); }
+    #hint.show, #toast.show { opacity:1; }
+    #start { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center;
+      justify-content:flex-end; padding:0 28px max(48px,env(safe-area-inset-bottom)); overflow:hidden; background:#0a241c; }
+    #start.gone { opacity:0; pointer-events:none; transition:opacity .8s ease; }
+    #startBg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+    .copy, #enter, .note { position:relative; z-index:2; }
+    .copy { text-align:center; margin-bottom:28px; animation:rise 1.2s ease both; }
+    @keyframes rise { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .eyebrow { letter-spacing:.42em; font-size:12px; color:var(--gold); margin-bottom:10px; text-shadow:0 2px 10px rgba(0,0,0,.45); }
+    h1 { font-weight:700; font-size:clamp(42px,11vw,68px); letter-spacing:.22em; margin:0 0 12px .22em; text-shadow:0 8px 28px rgba(0,0,0,.55); }
+    .sub { font-size:16px; letter-spacing:.16em; color:var(--mist); line-height:1.8; text-shadow:0 2px 10px rgba(0,0,0,.5); }
+    #enter { width:min(86vw,360px); border:1px solid var(--gold); background:linear-gradient(180deg,#2a5a3a 0%,#12352a 100%);
+      color:var(--cream); font-family:inherit; font-size:22px; font-weight:700; letter-spacing:.28em;
+      padding:16px 24px 16px 36px; border-radius:999px; box-shadow:0 0 0 1px rgba(232,228,122,.2),0 12px 40px rgba(0,0,0,.35);
+      cursor:pointer; animation:rise 1.2s ease .15s both, pulse 2.8s ease-in-out 1.4s infinite; }
+    #enter:disabled { opacity:.7; animation:none; }
+    #enter:active { transform:scale(.98); }
     @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 1px rgba(230,195,106,0.2), 0 12px 40px rgba(0,0,0,0.35); }
-      50% { box-shadow: 0 0 0 6px rgba(230,195,106,0.12), 0 12px 40px rgba(0,0,0,0.35); }
+      0%,100%{box-shadow:0 0 0 1px rgba(232,228,122,.2),0 12px 40px rgba(0,0,0,.35)}
+      50%{box-shadow:0 0 0 6px rgba(232,228,122,.14),0 12px 40px rgba(0,0,0,.35)}
     }
-    .note {
-      position: relative;
-      z-index: 2;
-      margin-top: 16px;
-      margin-bottom: 12px;
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      color: rgba(197, 208, 188, 0.75);
-      text-align: center;
-      line-height: 1.7;
-      animation: rise 1.2s ease 0.25s both;
-    }
-    .pollen span {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: rgba(243, 234, 211, 0.7);
-      animation: floatUp 9s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes floatUp {
-      0% { transform: translateY(0) translateX(0); opacity: 0; }
-      15% { opacity: 0.8; }
-      100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
-    }
+    .note { margin-top:16px; margin-bottom:12px; font-size:12px; letter-spacing:.1em; color:rgba(197,216,192,.8);
+      text-align:center; line-height:1.7; text-shadow:0 2px 8px rgba(0,0,0,.5); animation:rise 1.2s ease .25s both; }
   </style>
 </head>
 <body>
   <video id="cam" playsinline muted autoplay></video>
   <canvas id="view"></canvas>
-
   <div id="hud">
     <button type="button" id="modeBtn">純森林模式</button>
     <div id="toast" role="status"></div>
     <div id="hint">轉動手機，環顧這片森林</div>
   </div>
-
   <div id="start">
-    <div class="sun"></div>
-    <div class="rays"></div>
-    <div class="mist"></div>
-    <div class="pollen" id="pollen"></div>
-    <div class="silhouettes" aria-hidden="true">
-      <svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice">
-        <path fill="#08150d" d="M0 400 L0 250 L40 240 L55 140 L70 240 L110 230 L130 90 L150 230 L200 250 L230 120 L245 40 L260 120 L300 250 L360 230 L390 150 L410 230 L470 260 L520 180 L540 80 L560 180 L620 250 L680 220 L710 100 L730 220 L800 255 L860 200 L880 90 L900 200 L960 250 L1020 210 L1050 120 L1070 210 L1120 250 L1200 230 L1200 400 Z"/>
-        <path fill="#0a1c11" d="M0 400 L0 300 L70 290 C90 220 100 180 95 290 L160 310 L200 200 C210 150 230 80 225 200 L280 300 L350 280 C370 210 390 160 385 280 L480 310 L540 230 C555 170 575 110 568 230 L650 300 L730 270 C750 200 770 140 765 270 L860 310 L930 240 C945 180 965 120 958 240 L1040 300 L1120 280 L1200 300 L1200 400 Z"/>
-        <path fill="#07140c" d="M0 400 L0 340 L80 330 L120 260 L150 330 L250 345 L300 250 L330 345 L450 330 L500 270 L540 330 L700 350 L760 260 L800 350 L920 330 L980 280 L1020 335 L1200 345 L1200 400 Z"/>
-      </svg>
-    </div>
-    <div class="grain"></div>
+    <canvas id="startBg"></canvas>
     <div class="copy">
       <div class="eyebrow">FOREST WALK</div>
       <h1>林間漫步</h1>
-      <div class="sub">轉動手機，讓整片森林圍繞著你</div>
+      <div class="sub">轉動手機，走進層層葉影的叢林</div>
     </div>
     <button type="button" id="enter">進入森林</button>
     <div class="note">首次進入會詢問運動感測器與相機權限<br />相機無法開啟時，會自動改為純森林模式</div>
   </div>
-
   <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
@@ -307,17 +89,6 @@ const hintEl = $('hint');
 const videoEl = $('cam');
 const canvas = $('view');
 
-const pollen = $('pollen');
-for (let i = 0; i < 16; i++) {
-  const s = document.createElement('span');
-  s.style.left = Math.random() * 100 + '%';
-  s.style.bottom = Math.random() * 30 + '%';
-  s.style.animationDelay = (Math.random() * 9) + 's';
-  s.style.animationDuration = (8 + Math.random() * 6) + 's';
-  s.style.width = s.style.height = (2 + Math.random() * 3) + 'px';
-  pollen.appendChild(s);
-}
-
 function mulberry32(a) {
   return function () {
     let t = (a += 0x6D2B79F5);
@@ -328,8 +99,8 @@ function mulberry32(a) {
 }
 const rng = mulberry32(20261122);
 const rand = (a, b) => a + rng() * (b - a);
-const irand = (a, b) => Math.floor(rand(a, b + 1));
-const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+const pick = (arr) => arr[(rng() * arr.length) | 0];
+const rrng = (r, a, b) => a + r() * (b - a);
 
 let mode = 'vr';
 let cameraReady = false;
@@ -337,8 +108,7 @@ let mediaStream = null;
 let started = false;
 let gotGyro = false;
 let orientEvent = null;
-let toastTimer = 0;
-let hintTimer = 0;
+let toastTimer = 0, hintTimer = 0;
 
 function toast(msg, ms = 3400) {
   toastEl.textContent = msg;
@@ -353,11 +123,734 @@ function showHint(msg, ms = 5000) {
   hintTimer = setTimeout(() => hintEl.classList.remove('show'), ms);
 }
 
+const PAL = {
+  yellow: ['#f4f28c', '#e6e458', '#d5dc4a', '#c8d23c', '#f0e470'],
+  lime: ['#b8d64c', '#9ecf3a', '#c6e258', '#a8c844'],
+  mid: ['#58a838', '#6bb444', '#4a9a30', '#7cbc50'],
+  fresh: ['#34a858', '#2c9a4e', '#48b868', '#1e8a44'],
+  teal: ['#1a8a68', '#147a5a', '#228e70', '#0e6c50', '#1c7a60'],
+  dark: ['#0d4a38', '#0a3a2c', '#124830', '#0c3328', '#165040'],
+  deep: ['#07241c', '#0a1c16', '#0b2a22', '#061812'],
+  branch: ['#6b3a24', '#5a2e1c', '#4a2418', '#7a4630', '#3e1e14'],
+  pink: ['#ef7aa8', '#f090b8', '#e86898', '#f4a0c0'],
+  purple: ['#d080c8', '#c070b8', '#e0a0d8', '#c888c0'],
+  center: '#f8e8a0',
+};
+
+function hexRgb(h) {
+  h = h.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function mixHex(a, b, t) {
+  const A = hexRgb(a), B = hexRgb(b);
+  const r = (A[0] + (B[0]-A[0])*t + 0.5) | 0;
+  const g = (A[1] + (B[1]-A[1])*t + 0.5) | 0;
+  const bl = (A[2] + (B[2]-A[2])*t + 0.5) | 0;
+  return `rgb(${r},${g},${bl})`;
+}
+function makeCanvas(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  return c;
+}
+
+function drawOvate(ctx, x, y, len, wid, ang, base, hi, stem) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  if (stem) {
+    ctx.strokeStyle = stem;
+    ctx.lineWidth = Math.max(2, wid * 0.07);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 10);
+    ctx.lineTo(0, 0);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-wid * 0.12, len * 0.06, -wid * 0.55, len * 0.28, -wid * 0.5, len * 0.52);
+  ctx.bezierCurveTo(-wid * 0.42, len * 0.8, -wid * 0.14, len * 0.93, 0, len);
+  ctx.bezierCurveTo(wid * 0.14, len * 0.93, wid * 0.42, len * 0.8, wid * 0.5, len * 0.52);
+  ctx.bezierCurveTo(wid * 0.55, len * 0.28, wid * 0.12, len * 0.06, 0, 0);
+  ctx.closePath();
+  ctx.fillStyle = base;
+  ctx.fill();
+  ctx.save();
+  ctx.clip();
+  ctx.beginPath();
+  ctx.moveTo(-wid, -2);
+  ctx.quadraticCurveTo(wid * 0.08, len * 0.42, 0, len + 2);
+  ctx.lineTo(-wid, len + 2);
+  ctx.closePath();
+  ctx.fillStyle = hi;
+  ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,220,0.18)';
+  ctx.lineWidth = Math.max(1.1, wid * 0.035);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, len * 0.05);
+  ctx.quadraticCurveTo(wid * 0.04, len * 0.5, 0, len * 0.9);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLobed(ctx, x, y, len, wid, ang, base, hi, stem) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  if (stem) {
+    ctx.strokeStyle = stem;
+    ctx.lineWidth = Math.max(2.2, wid * 0.08);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 12);
+    ctx.lineTo(0, 0);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-wid * 0.1, len * 0.05, -wid * 0.7, len * 0.15, -wid * 0.62, len * 0.38);
+  ctx.bezierCurveTo(-wid * 0.7, len * 0.5, -wid * 0.25, len * 0.5, -wid * 0.3, len * 0.62);
+  ctx.bezierCurveTo(-wid * 0.4, len * 0.88, -wid * 0.08, len * 0.98, 0, len);
+  ctx.bezierCurveTo(wid * 0.08, len * 0.98, wid * 0.4, len * 0.88, wid * 0.3, len * 0.62);
+  ctx.bezierCurveTo(wid * 0.25, len * 0.5, wid * 0.7, len * 0.5, wid * 0.62, len * 0.38);
+  ctx.bezierCurveTo(wid * 0.7, len * 0.15, wid * 0.1, len * 0.05, 0, 0);
+  ctx.closePath();
+  ctx.fillStyle = base;
+  ctx.fill();
+  ctx.save();
+  ctx.clip();
+  ctx.beginPath();
+  ctx.moveTo(-wid, -2);
+  ctx.quadraticCurveTo(0, len * 0.4, -wid * 0.05, len);
+  ctx.lineTo(-wid, len);
+  ctx.closePath();
+  ctx.fillStyle = hi;
+  ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,220,0.16)';
+  ctx.lineWidth = Math.max(1.2, wid * 0.03);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, len * 0.88);
+  ctx.moveTo(0, len * 0.22);
+  ctx.quadraticCurveTo(-wid * 0.2, len * 0.32, -wid * 0.45, len * 0.38);
+  ctx.moveTo(0, len * 0.22);
+  ctx.quadraticCurveTo(wid * 0.2, len * 0.32, wid * 0.45, len * 0.38);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPinnate(ctx, x, y, len, wid, ang, base, hi, stem) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  const n = 7;
+  ctx.strokeStyle = stem || mixHex(base, '#3a2010', 0.4);
+  ctx.lineWidth = Math.max(2, wid * 0.08);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, 8);
+  ctx.lineTo(0, len * 0.96);
+  ctx.stroke();
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const yy = len * (0.12 + t * 0.82);
+    const s = (1 - t * 0.62) * wid;
+    const side = i === n - 1 ? 0 : (i % 2 === 0 ? -1 : 1);
+    if (i === n - 1) drawOvate(ctx, 0, yy, s * 0.9, s * 0.38, -0.05, base, hi, null);
+    else drawOvate(ctx, 0, yy, s, s * 0.42, side * (0.85 + t * 0.15), i % 3 === 0 ? hi : base, i % 3 === 0 ? mixHex(hi, '#fff6a0', 0.3) : hi, null);
+  }
+  ctx.restore();
+}
+
+function drawFern(ctx, x, y, len, wid, ang, base, hi, stem) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  ctx.strokeStyle = stem || mixHex(base, '#2a4010', 0.3);
+  ctx.lineWidth = Math.max(1.6, wid * 0.06);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, 6);
+  ctx.quadraticCurveTo(wid * 0.08, len * 0.5, 0, len);
+  ctx.stroke();
+  const pairs = 11;
+  for (let i = 0; i < pairs; i++) {
+    const t = i / pairs;
+    const yy = len * (0.08 + t * 0.86);
+    const s = (1 - t * 0.7) * wid * 0.95;
+    const col = i % 2 === 0 ? base : hi;
+    for (const side of [-1, 1]) {
+      ctx.save();
+      ctx.translate(0, yy);
+      ctx.rotate(side * (0.95 - t * 0.2));
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(s * 0.2, s * 0.1, s * 0.7, s * 0.15, s, 0);
+      ctx.bezierCurveTo(s * 0.7, s * 0.45, s * 0.2, s * 0.35, 0, 0);
+      ctx.closePath();
+      ctx.fillStyle = col;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
+function drawCluster(ctx, x, y, size, ang, colors, stem) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  const st = stem || PAL.branch[0];
+  ctx.strokeStyle = st;
+  ctx.lineWidth = Math.max(2, size * 0.05);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, 10);
+  ctx.quadraticCurveTo(size * 0.05, size * 0.4, 0, size * 0.7);
+  ctx.stroke();
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const a = -0.9 + t * 1.8;
+    const yy = size * (0.15 + t * 0.55);
+    const L = size * (0.35 + (i % 3) * 0.08);
+    const W = L * 0.52;
+    const base = colors[i % colors.length];
+    const hi = mixHex(base, '#e8f090', 0.35);
+    drawOvate(ctx, 0, yy, L, W, a, base, hi, null);
+  }
+  ctx.restore();
+}
+
+function drawFlower(ctx, x, y, r, petal, center, n = 5) {
+  ctx.save();
+  ctx.translate(x, y);
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+    ctx.save();
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.ellipse(0, r * 0.55, r * 0.38, r * 0.55, 0, 0, Math.PI * 2);
+    ctx.fillStyle = petal;
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2);
+  ctx.fillStyle = center;
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawSprig(ctx, x, y, len, ang, petal, leafCol, stem) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  ctx.strokeStyle = stem || '#3a5a28';
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, 8);
+  ctx.quadraticCurveTo(6, len * 0.5, 0, len);
+  ctx.stroke();
+  for (let i = 0; i < 5; i++) {
+    const t = 0.18 + i * 0.16;
+    const side = i % 2 === 0 ? -1 : 1;
+    const xx = side * (8 + i * 2);
+    const yy = len * t;
+    ctx.beginPath();
+    ctx.moveTo(0, yy);
+    ctx.lineTo(xx, yy - 4);
+    ctx.stroke();
+    if (i < 2) drawOvate(ctx, xx * 0.4, yy, 16, 9, side * 0.8, leafCol, mixHex(leafCol, '#d0e070', 0.4), null);
+    drawFlower(ctx, xx, yy - 4, 7 + (i % 3), petal, PAL.center, 5);
+  }
+  ctx.restore();
+}
+
+function drawBranch(ctx, w, h, r) {
+  const st = pick(PAL.branch);
+  ctx.strokeStyle = st;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  const x0 = w * 0.15, y0 = h * 0.08;
+  const x2 = w * 0.85, y2 = h * 0.88;
+  ctx.lineWidth = 16;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.quadraticCurveTo(w * 0.28, h * 0.3, w * 0.55, h * 0.6);
+  ctx.stroke();
+  ctx.lineWidth = 9;
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.moveTo(w * 0.42, h * 0.42);
+  ctx.quadraticCurveTo(w * 0.6, h * 0.55, w * 0.72, h * 0.68);
+  ctx.stroke();
+  const cols = r() < 0.5 ? PAL.yellow : PAL.teal;
+  for (let i = 0; i < 6; i++) {
+    const t = 0.25 + i * 0.12;
+    const x = x0 + (x2 - x0) * t + rrng(r, -10, 10);
+    const y = y0 + (y2 - y0) * t + rrng(r, -8, 8);
+    const base = cols[i % cols.length];
+    drawOvate(ctx, x, y, rrng(r, 70, 130), rrng(r, 32, 58), rrng(r, -1.4, 0.2), base, mixHex(base, '#f0f090', 0.4), st);
+  }
+}
+
+function paintTile(ctx, w, h, kind, r, palettes) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(0, h);
+  ctx.scale(1, -1);
+  const stem = PAL.branch[(r() * PAL.branch.length) | 0];
+  const pals = palettes || [PAL.yellow, PAL.lime, PAL.mid, PAL.fresh, PAL.teal, PAL.dark];
+  const pal = pals[(r() * pals.length) | 0];
+  const base = pal[(r() * pal.length) | 0];
+  const hi = mixHex(base, '#f8f6a0', 0.5);
+  const cx = w * 0.5;
+  if (kind === 'ovate') drawOvate(ctx, cx, h * 0.08, h * 0.84, w * rrng(r, 0.28, 0.4), rrng(r, -0.2, 0.2), base, hi, stem);
+  else if (kind === 'lobed') drawLobed(ctx, cx, h * 0.1, h * 0.82, w * 0.42, rrng(r, -0.15, 0.15), base, hi, stem);
+  else if (kind === 'pinnate') drawPinnate(ctx, cx, h * 0.05, h * 0.9, w * 0.28, rrng(r, -0.12, 0.12), base, hi, stem);
+  else if (kind === 'fern') {
+    const b = pal[(r() * pal.length) | 0];
+    drawFern(ctx, cx, h * 0.05, h * 0.9, w * 0.28, rrng(r, -0.1, 0.1), b, mixHex(b, '#f0f080', 0.4), stem);
+  } else if (kind === 'cluster') {
+    drawCluster(ctx, cx, h * 0.08, h * 0.85, rrng(r, -0.15, 0.15), pal, stem);
+  } else if (kind === 'flowers') {
+    const petal = r() < 0.5 ? PAL.pink[(r()*PAL.pink.length)|0] : PAL.purple[(r()*PAL.purple.length)|0];
+    const leaf = pal[(r()*pal.length)|0];
+    drawSprig(ctx, cx, h * 0.08, h * 0.82, rrng(r, -0.12, 0.12), petal, leaf, PAL.fresh[0]);
+    if (r() < 0.7) drawSprig(ctx, w * 0.28, h * 0.2, h * 0.55, -0.35, petal, leaf, PAL.fresh[1]);
+  } else if (kind === 'branch') {
+    drawBranch(ctx, w, h, r);
+  }
+  ctx.restore();
+}
+function drawDeer(ctx, w, h, frame, antlers) {
+  ctx.clearRect(0, 0, w, h);
+  const s = w / 512;
+  ctx.save();
+  ctx.translate(w * 0.48, h * 0.78);
+  ctx.scale(s * 1.15, s * 1.15);
+  const fur = '#6b4423', dark = '#3d2816', cream = '#e6d5b0', horn = '#d4c4a0';
+  const legX = [-42, -22, 18, 40];
+  const phase = frame ? 1 : -1;
+  ctx.strokeStyle = dark;
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const swing = (i % 2 === 0 ? phase : -phase) * 10;
+    ctx.beginPath();
+    ctx.moveTo(legX[i], -30);
+    ctx.lineTo(legX[i] + swing, 70);
+    ctx.stroke();
+  }
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(0, -50, 70, 38, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = cream;
+  ctx.beginPath();
+  ctx.ellipse(8, -32, 32, 12, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = fur;
+  ctx.lineWidth = 20;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(50, -70);
+  ctx.quadraticCurveTo(72, -90, 86, -108);
+  ctx.stroke();
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(98, -118, 26, 18, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = dark;
+  ctx.beginPath();
+  ctx.ellipse(118, -112, 10, 7, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1a120c';
+  ctx.beginPath();
+  ctx.arc(108, -124, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(88, -138, 7, 14, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  if (antlers) {
+    ctx.strokeStyle = horn;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(92, -132);
+    ctx.lineTo(86, -168);
+    ctx.lineTo(74, -178);
+    ctx.moveTo(86, -156);
+    ctx.lineTo(98, -174);
+    ctx.moveTo(100, -128);
+    ctx.lineTo(108, -162);
+    ctx.lineTo(120, -170);
+    ctx.stroke();
+  }
+  ctx.fillStyle = cream;
+  ctx.beginPath();
+  ctx.ellipse(-68, -62, 8, 10, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawRabbit(ctx, w, h, frame) {
+  ctx.clearRect(0, 0, w, h);
+  const s = w / 512;
+  ctx.save();
+  ctx.translate(w * 0.5, h * 0.82);
+  ctx.scale(s * 1.25, s * 1.25);
+  const fur = '#f0e2c4', pink = '#f0a8a8', dark = '#4a3a2a';
+  const hop = frame ? -12 : 0;
+  ctx.fillStyle = dark;
+  ctx.beginPath();
+  ctx.ellipse(-10, 18 + hop * 0.2, 10, 14, 0.3, 0, Math.PI * 2);
+  ctx.ellipse(16, 20 + hop * 0.2, 9, 12, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(0, -10 + hop, 36, 28, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(28, -38 + hop, 24, 22, 0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(22, -58 + hop);
+  ctx.rotate(-0.2);
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(0, -22, 8, 28, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = pink;
+  ctx.beginPath();
+  ctx.ellipse(0, -20, 4, 20, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(36, -56 + hop);
+  ctx.rotate(0.15);
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(0, -22, 8, 28, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = pink;
+  ctx.beginPath();
+  ctx.ellipse(0, -20, 4, 20, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#1a120c';
+  ctx.beginPath();
+  ctx.arc(36, -40 + hop, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = pink;
+  ctx.beginPath();
+  ctx.ellipse(48, -32 + hop, 4, 3, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff8ee';
+  ctx.beginPath();
+  ctx.arc(-32, -8 + hop, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFox(ctx, w, h, frame) {
+  ctx.clearRect(0, 0, w, h);
+  const s = w / 512;
+  ctx.save();
+  ctx.translate(w * 0.46, h * 0.78);
+  ctx.scale(s * 1.15, s * 1.15);
+  const fur = '#e07030', white = '#f6efe4', dark = '#2a1c14';
+  const phase = frame ? 1 : -1;
+  const legs = [-28, -10, 22, 40];
+  ctx.strokeStyle = dark;
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const swing = (i % 2 === 0 ? phase : -phase) * 8;
+    ctx.beginPath();
+    ctx.moveTo(legs[i], -16);
+    ctx.lineTo(legs[i] + swing, 62);
+    ctx.stroke();
+  }
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(4, -30, 58, 26, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = white;
+  ctx.beginPath();
+  ctx.ellipse(10, -18, 36, 14, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(-70, -38, 36, 16, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = white;
+  ctx.beginPath();
+  ctx.ellipse(-100, -50, 12, 10, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(58, -52, 24, 20, 0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(70, -48);
+  ctx.lineTo(96, -40);
+  ctx.lineTo(70, -34);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#1a120c';
+  ctx.beginPath();
+  ctx.arc(96, -40, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(64, -58, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.moveTo(48, -66);
+  ctx.lineTo(42, -92);
+  ctx.lineTo(60, -70);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(68, -68);
+  ctx.lineTo(74, -94);
+  ctx.lineTo(80, -66);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawButterfly(ctx, w, h, frame) {
+  ctx.clearRect(0, 0, w, h);
+  const s = w / 512;
+  ctx.save();
+  ctx.translate(w * 0.5, h * 0.5);
+  ctx.scale(s, s);
+  const open = frame ? 1 : 0.55;
+  const wing = (side, col, col2) => {
+    ctx.save();
+    ctx.scale(side * open, 1);
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.ellipse(36, -20, 40, 32, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = col2;
+    ctx.beginPath();
+    ctx.ellipse(32, 22, 26, 22, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,220,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(28, -24, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+  wing(-1, '#ef7aa8', '#d080c8');
+  wing(1, '#ef7aa8', '#e86898');
+  ctx.fillStyle = '#2a1c14';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 6, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#2a1c14';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, -20);
+  ctx.quadraticCurveTo(-16, -40, -22, -48);
+  ctx.moveTo(0, -20);
+  ctx.quadraticCurveTo(16, -40, 22, -48);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawBird(ctx, w, h, frame) {
+  ctx.clearRect(0, 0, w, h);
+  const s = w / 512;
+  ctx.save();
+  ctx.translate(w * 0.5, h * 0.55);
+  ctx.scale(s, s);
+  const body = '#4a6a8a', wingC = '#2e4a62', belly = '#e8dcc8';
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 28, 18, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = belly;
+  ctx.beginPath();
+  ctx.ellipse(2, 8, 18, 8, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.ellipse(24, -8, 14, 12, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#e0a040';
+  ctx.beginPath();
+  ctx.moveTo(36, -8);
+  ctx.lineTo(52, -4);
+  ctx.lineTo(36, 0);
+  ctx.fill();
+  ctx.fillStyle = '#1a120c';
+  ctx.beginPath();
+  ctx.arc(28, -12, 2.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(-4, -2);
+  ctx.rotate(frame ? -0.7 : 0.35);
+  ctx.fillStyle = wingC;
+  ctx.beginPath();
+  ctx.ellipse(0, -10, 22, 14, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.moveTo(-24, 0);
+  ctx.quadraticCurveTo(-44, -8, -40, 8);
+  ctx.quadraticCurveTo(-30, 6, -24, 0);
+  ctx.fill();
+  ctx.restore();
+}
+
+function buildAtlas(size, cols, rows, painter) {
+  const c = makeCanvas(size, size);
+  const ctx = c.getContext('2d');
+  const tw = size / cols, th = size / rows;
+  const tiles = [];
+  for (let i = 0; i < cols * rows; i++) {
+    const x = (i % cols) * tw;
+    const y = ((i / cols) | 0) * th;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, tw, th);
+    ctx.clip();
+    ctx.translate(x, y);
+    painter(ctx, tw, th, i);
+    ctx.restore();
+    tiles.push({
+      u: x / size,
+      v: 1 - (y + th) / size,
+      su: tw / size,
+      sv: th / size,
+    });
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = 4;
+  tex.needsUpdate = true;
+  return { canvas: c, texture: tex, tiles, tw, th, size };
+}
+
+const plantKinds = [
+  'ovate','ovate','ovate','lobed',
+  'pinnate','fern','cluster','cluster',
+  'flowers','flowers','branch','ovate',
+  'lobed','pinnate','fern','cluster',
+];
+const TILE_PAL = [
+  [PAL.yellow, PAL.lime], [PAL.yellow, PAL.lime], [PAL.lime, PAL.mid], [PAL.yellow, PAL.lime],
+  [PAL.lime, PAL.mid], [PAL.lime, PAL.yellow], [PAL.mid, PAL.fresh], [PAL.yellow, PAL.lime],
+  [PAL.fresh, PAL.teal], [PAL.teal, PAL.mid], [PAL.yellow, PAL.teal], [PAL.teal, PAL.fresh],
+  [PAL.dark, PAL.teal], [PAL.dark, PAL.teal], [PAL.dark, PAL.teal], [PAL.dark, PAL.teal],
+];
+const plantAtlas = buildAtlas(2048, 4, 4, (ctx, w, h, i) => {
+  paintTile(ctx, w, h, plantKinds[i], mulberry32(8800 + i * 97), TILE_PAL[i]);
+});
+const animalAtlas = buildAtlas(2048, 4, 4, (ctx, w, h, i) => {
+  if (i === 0) drawDeer(ctx, w, h, 0, false);
+  else if (i === 1) drawDeer(ctx, w, h, 1, false);
+  else if (i === 2) drawDeer(ctx, w, h, 0, true);
+  else if (i === 3) drawDeer(ctx, w, h, 1, true);
+  else if (i === 4) drawRabbit(ctx, w, h, 0);
+  else if (i === 5) drawRabbit(ctx, w, h, 1);
+  else if (i === 6) drawFox(ctx, w, h, 0);
+  else if (i === 7) drawFox(ctx, w, h, 1);
+  else if (i === 8) drawButterfly(ctx, w, h, 0);
+  else if (i === 9) drawButterfly(ctx, w, h, 1);
+  else if (i === 10) drawBird(ctx, w, h, 0);
+  else if (i === 11) drawBird(ctx, w, h, 1);
+  else paintTile(ctx, w, h, i % 2 ? 'flowers' : 'cluster', mulberry32(1200 + i * 13), [PAL.fresh, PAL.teal]);
+});
+
+const TILE = {
+  ovate: [0, 1, 2, 11],
+  lobed: [3, 12],
+  pinnate: [4, 13],
+  fern: [5, 14],
+  cluster: [6, 7, 15],
+  flowers: [8, 9],
+  branch: [10],
+};
+const ANI = {
+  deer: [0, 1],
+  deerA: [2, 3],
+  rabbit: [4, 5],
+  fox: [6, 7],
+  butterfly: [8, 9],
+  bird: [10, 11],
+};
+
+(function paintStart() {
+  const c = $('startBg');
+  const w = c.width = Math.min(1440, Math.max(720, window.innerWidth * 1.2));
+  const h = c.height = Math.min(2560, Math.max(1280, window.innerHeight * 1.2));
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#123c34');
+  g.addColorStop(0.45, '#0c2c24');
+  g.addColorStop(1, '#071a14');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  const glow = ctx.createRadialGradient(w * 0.5, h * 0.42, 10, w * 0.5, h * 0.45, w * 0.55);
+  glow.addColorStop(0, 'rgba(255, 236, 150, 0.95)');
+  glow.addColorStop(0.18, 'rgba(232, 220, 110, 0.55)');
+  glow.addColorStop(0.4, 'rgba(120, 180, 130, 0.2)');
+  glow.addColorStop(1, 'rgba(8, 30, 24, 0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
+  const R = mulberry32(42);
+  for (let i = 0; i < 28; i++) {
+    const x = rrng(R, 0, w), y = rrng(R, h * 0.05, h * 0.75);
+    const pal = R() < 0.5 ? PAL.dark : PAL.teal;
+    const b = pal[(R()*pal.length)|0], hi = mixHex(b, '#c8d860', 0.2);
+    const k = R();
+    if (k < 0.3) drawFern(ctx, x, y, rrng(R, 80, 180), rrng(R, 30, 70), rrng(R, -0.4, 0.4), b, hi, PAL.branch[0]);
+    else if (k < 0.6) drawCluster(ctx, x, y, rrng(R, 90, 200), rrng(R, -0.5, 0.5), pal, PAL.branch[1]);
+    else drawOvate(ctx, x, y, rrng(R, 70, 160), rrng(R, 30, 70), rrng(R, -0.8, 0.8), b, hi, PAL.branch[0]);
+  }
+  for (let i = 0; i < 22; i++) {
+    const side = R() < 0.5 ? rrng(R, 0, w * 0.38) : rrng(R, w * 0.62, w);
+    const y = rrng(R, h * 0.02, h * 0.7);
+    const pals = [PAL.yellow, PAL.lime, PAL.mid, PAL.fresh, PAL.teal];
+    const pal = pals[(R()*pals.length)|0];
+    const b = pal[(R()*pal.length)|0], hi = mixHex(b, '#f4f4a0', 0.45);
+    const k = R();
+    if (k < 0.25) drawLobed(ctx, side, y, rrng(R, 140, 260), rrng(R, 70, 120), rrng(R, -0.5, 0.5), b, hi, PAL.branch[0]);
+    else if (k < 0.45) drawPinnate(ctx, side, y, rrng(R, 160, 280), rrng(R, 50, 90), rrng(R, -0.4, 0.4), b, hi, PAL.branch[1]);
+    else if (k < 0.6) drawFern(ctx, side, y, rrng(R, 140, 240), rrng(R, 50, 90), rrng(R, -0.3, 0.3), b, hi, PAL.branch[2]);
+    else drawOvate(ctx, side, y, rrng(R, 130, 250), rrng(R, 55, 110), rrng(R, -0.7, 0.7), b, hi, PAL.branch[0]);
+  }
+  for (let i = 0; i < 8; i++) {
+    const side = R() < 0.5 ? rrng(R, 0, w * 0.3) : rrng(R, w * 0.7, w);
+    drawSprig(ctx, side, rrng(R, h * 0.35, h * 0.85), rrng(R, 100, 200), rrng(R, -0.4, 0.4), (R()<0.6?PAL.pink:PAL.purple)[(R()*4)|0], PAL.teal[0], PAL.fresh[0]);
+  }
+  for (let i = 0; i < 10; i++) {
+    const side = R() < 0.5 ? rrng(R, -40, w * 0.28) : rrng(R, w * 0.7, w + 40);
+    const y = rrng(R, h * 0.35, h * 0.95);
+    const pals = [PAL.yellow, PAL.lime, PAL.mid, PAL.teal];
+    const pal = pals[(R()*pals.length)|0];
+    const b = pal[(R()*pal.length)|0], hi = mixHex(b, '#f8f6a8', 0.5);
+    drawOvate(ctx, side, y, rrng(R, 200, 360), rrng(R, 90, 160), rrng(R, -0.9, 0.9), b, hi, PAL.branch[1]);
+  }
+})();
 const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: false,
-  alpha: true,
-  powerPreference: 'high-performance',
+  canvas, antialias: false, alpha: true, powerPreference: 'high-performance',
 });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -365,26 +858,25 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setClearColor(0x000000, 0);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 180);
-camera.position.set(0, 1.62, 0);
+const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.08, 80);
+camera.position.set(0, 1.5, 0);
 camera.rotation.order = 'YXZ';
+scene.add(camera);
 
-const hemi = new THREE.HemisphereLight(0xe8f0e4, 0x4a6a38, 1.25);
-scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xffefc4, 1.55);
-sun.position.set(-18, 48, -36);
-scene.add(sun);
-const fill = new THREE.DirectionalLight(0x9eb7c8, 0.55);
-fill.position.set(26, 18, 22);
-scene.add(fill);
-const amb = new THREE.AmbientLight(0xdde8c8, 0.45);
-scene.add(amb);
+const vrGroup = new THREE.Group();
+scene.add(vrGroup);
 
-const skyGeo = new THREE.SphereGeometry(140, 24, 16);
+const GLOW_DIRS = [
+  new THREE.Vector3(0.32, 0.18, -0.93).normalize(),
+  new THREE.Vector3(-0.85, 0.12, 0.51).normalize(),
+  new THREE.Vector3(0.72, 0.22, 0.66).normalize(),
+  new THREE.Vector3(-0.2, 0.08, 0.98).normalize(),
+];
+
 const skyMat = new THREE.ShaderMaterial({
   side: THREE.BackSide,
   depthWrite: false,
-  uniforms: {},
+  uniforms: { glowDirs: { value: GLOW_DIRS } },
   vertexShader: `
     varying vec3 vPos;
     void main() {
@@ -394,593 +886,511 @@ const skyMat = new THREE.ShaderMaterial({
   `,
   fragmentShader: `
     varying vec3 vPos;
+    uniform vec3 glowDirs[4];
     void main() {
       vec3 d = normalize(vPos);
-      float h = d.y;
-      vec3 top = vec3(0.42, 0.62, 0.80);
-      vec3 hor = vec3(0.90, 0.82, 0.64);
-      vec3 bot = vec3(0.28, 0.36, 0.26);
-      vec3 col = mix(hor, top, smoothstep(0.0, 0.62, h));
-      col = mix(bot, col, smoothstep(-0.25, 0.04, h));
-      float sunAmt = pow(max(dot(d, normalize(vec3(0.35, 0.22, 0.4))), 0.0), 32.0);
-      col += vec3(1.0, 0.86, 0.55) * sunAmt * 0.55;
+      vec3 dark = vec3(0.035, 0.09, 0.07);
+      vec3 mid = vec3(0.07, 0.16, 0.13);
+      vec3 col = mix(mid, dark, smoothstep(-0.2, 0.7, d.y));
+      for (int i = 0; i < 4; i++) {
+        float g = pow(max(dot(d, normalize(glowDirs[i])), 0.0), 14.0);
+        float g2 = pow(max(dot(d, normalize(glowDirs[i])), 0.0), 4.5);
+        col += vec3(1.0, 0.88, 0.42) * g * 0.72;
+        col += vec3(0.72, 0.8, 0.38) * g2 * 0.32;
+      }
       gl_FragColor = vec4(col, 1.0);
     }
   `,
 });
-const sky = new THREE.Mesh(skyGeo, skyMat);
-scene.add(sky);
+vrGroup.add(new THREE.Mesh(new THREE.SphereGeometry(60, 24, 16), skyMat));
 
-function makeGroundTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 512;
+function makeGlowTex() {
+  const c = makeCanvas(256, 256);
   const ctx = c.getContext('2d');
-  ctx.fillStyle = '#2a4628';
-  ctx.fillRect(0, 0, 512, 512);
-  for (let i = 0; i < 5000; i++) {
-    const x = Math.random() * 512;
-    const y = Math.random() * 512;
-    const s = Math.random() * 3.2 + 0.4;
-    const r = 20 + Math.random() * 50;
-    const g = 48 + Math.random() * 90;
-    const b = 18 + Math.random() * 36;
-    ctx.fillStyle = `rgba(${r|0},${g|0},${b|0},${0.15 + Math.random() * 0.4})`;
-    ctx.beginPath();
-    ctx.arc(x, y, s, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(18, 18);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
-  return tex;
+  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0, 'rgba(255, 236, 150, 0.85)');
+  g.addColorStop(0.22, 'rgba(245, 215, 100, 0.5)');
+  g.addColorStop(0.5, 'rgba(200, 210, 90, 0.22)');
+  g.addColorStop(1, 'rgba(100, 150, 80, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
-const ground = new THREE.Mesh(
-  new THREE.CircleGeometry(90, 48),
-  new THREE.MeshLambertMaterial({ map: makeGroundTexture(), color: 0xc8d2b8 })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = 0;
-scene.add(ground);
-
-const vrGroup = new THREE.Group();
-vrGroup.add(sky);
-vrGroup.add(ground);
-scene.add(vrGroup);
-
-const dummy = new THREE.Object3D();
-const tmpMat = new THREE.Matrix4();
-const treeMat = new THREE.Matrix4();
-const color = new THREE.Color();
-
-function composePart(mesh, index, px, pz, rotY, sc, lx, ly, lz, sx, sy, sz, rx = 0) {
-  dummy.position.set(px, 0, pz);
-  dummy.rotation.set(0, rotY, 0);
-  dummy.scale.set(sc, sc, sc);
-  dummy.updateMatrix();
-  treeMat.copy(dummy.matrix);
-  dummy.position.set(lx, ly, lz);
-  dummy.rotation.set(rx, 0, 0);
-  dummy.scale.set(sx, sy, sz);
-  dummy.updateMatrix();
-  tmpMat.multiplyMatrices(treeMat, dummy.matrix);
-  mesh.setMatrixAt(index, tmpMat);
+const glowMat = new THREE.SpriteMaterial({
+  map: makeGlowTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.9,
+});
+for (const dir of GLOW_DIRS) {
+  const s = new THREE.Sprite(glowMat);
+  s.position.copy(dir).multiplyScalar(20);
+  s.scale.set(16, 17, 1);
+  vrGroup.add(s);
+  const s2 = new THREE.Sprite(glowMat);
+  s2.position.copy(dir).multiplyScalar(14);
+  s2.scale.set(10, 12, 1);
+  vrGroup.add(s2);
 }
 
-const lambert = (hex, opts = {}) => new THREE.MeshLambertMaterial({ color: hex, emissive: 0x102010, emissiveIntensity: 0.18, ...opts });
-
-const PINE = 95;
-const BROAD = 70;
-const SAPLING = 36;
-const BUSH = 55;
-const ROCK = 28;
-const MUSH = 40;
-const GRASS = 280;
-const SHADOW = PINE + BROAD + SAPLING + BUSH;
-
-const pineTrunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.11, 0.2, 2.4, 5), lambert(0x4a3424), PINE);
-const pineA = new THREE.InstancedMesh(new THREE.ConeGeometry(1.15, 2.0, 6), lambert(0x2f6d34), PINE);
-const pineB = new THREE.InstancedMesh(new THREE.ConeGeometry(0.9, 1.7, 6), lambert(0x245a28), PINE);
-const pineC = new THREE.InstancedMesh(new THREE.ConeGeometry(0.62, 1.35, 6), lambert(0x3d7a38), PINE);
-const broadTrunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.13, 0.22, 2.6, 5), lambert(0x5c4030), BROAD);
-const broadA = new THREE.InstancedMesh(new THREE.SphereGeometry(1.15, 7, 5), lambert(0x3d7a34), BROAD);
-const broadB = new THREE.InstancedMesh(new THREE.SphereGeometry(0.9, 7, 5), lambert(0x4a8c3c), BROAD);
-const broadC = new THREE.InstancedMesh(new THREE.SphereGeometry(0.75, 6, 5), lambert(0x2d6a30), BROAD);
-const sapTrunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.06, 0.1, 1.2, 5), lambert(0x4a3424), SAPLING);
-const sapLeaf = new THREE.InstancedMesh(new THREE.ConeGeometry(0.55, 1.3, 6), lambert(0x3a6e30), SAPLING);
-const bushMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.7, 6, 4), lambert(0x2a5a28), BUSH);
-const rockMesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.55, 0), lambert(0x6b6a62), ROCK);
-const mushStem = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.04, 0.05, 0.12, 5), lambert(0xf0e6d0), MUSH);
-const mushCap = new THREE.InstancedMesh(new THREE.SphereGeometry(0.12, 6, 4), lambert(0xa83232), MUSH);
-const grassMesh = new THREE.InstancedMesh(new THREE.ConeGeometry(0.07, 0.42, 3), lambert(0x4a8a3c), GRASS);
-const shadowMesh = new THREE.InstancedMesh(
-  new THREE.CircleGeometry(1, 10),
-  new THREE.MeshBasicMaterial({ color: 0x0a1408, transparent: true, opacity: 0.32, depthWrite: false })
-, SHADOW);
-
-[
-  pineTrunk, pineA, pineB, pineC,
-  broadTrunk, broadA, broadB, broadC,
-  sapTrunk, sapLeaf, bushMesh, rockMesh,
-  mushStem, mushCap, grassMesh, shadowMesh
-].forEach((m) => { m.frustumCulled = true; scene.add(m); });
-vrGroup.add(grassMesh);
-vrGroup.add(shadowMesh);
-
-const pineColors = [0x2f6d34, 0x245a28, 0x3d7a38, 0x1e4a22, 0x4a8a40, 0x2a6230];
-const broadColors = [0x3d7a34, 0x4a8c3c, 0x2d6a30, 0x5a8a38, 0x6b8a34, 0x2a5a24, 0x5a6e28];
-const trunkColors = [0x4a3424, 0x3d2b1f, 0x5c4030, 0x6b4a32, 0x2e2218];
-const placed = [];
-
-function canPlace(x, z, minD, minR = 7) {
-  const d0 = Math.hypot(x, z);
-  if (d0 < minR) return false;
-  if (d0 > 72) return false;
-  for (let i = 0; i < placed.length; i++) {
-    const p = placed[i];
-    if ((p.x - x) * (p.x - x) + (p.z - z) * (p.z - z) < minD * minD) return false;
-  }
-  return true;
-}
-function sampleRing(minR, maxR, minD, tries = 30) {
-  for (let t = 0; t < tries; t++) {
-    const a = rand(0, Math.PI * 2);
-    const r = Math.sqrt(rand(minR * minR, maxR * maxR));
-    const x = Math.cos(a) * r;
-    const z = Math.sin(a) * r;
-    if (canPlace(x, z, minD, 6.5)) return { x, z };
-  }
-  return null;
-}
-
-let shadowI = 0;
-function addShadow(x, z, radius) {
-  dummy.position.set(x, 0.02, z);
-  dummy.rotation.set(-Math.PI / 2, 0, 0);
-  dummy.scale.set(radius, radius, 1);
-  dummy.updateMatrix();
-  shadowMesh.setMatrixAt(shadowI++, dummy.matrix);
-}
-
-const pineTrunkC = [0x4a3424, 0x3d2b1f, 0x2e2218];
-for (let i = 0; i < PINE; i++) {
-  const p = sampleRing(8, 68, 3.2) || { x: Math.cos(i) * 20, z: Math.sin(i) * 20 };
-  placed.push(p);
-  const sc = rand(0.85, 1.7);
-  const rot = rand(0, Math.PI * 2);
-  composePart(pineTrunk, i, p.x, p.z, rot, sc, 0, 1.2, 0, 1, 1, 1);
-  composePart(pineA, i, p.x, p.z, rot, sc, 0, 2.15, 0, 1, 1, 1);
-  composePart(pineB, i, p.x, p.z, rot, sc, 0, 3.05, 0, 1, 1, 1);
-  composePart(pineC, i, p.x, p.z, rot, sc, 0, 3.85, 0, 1, 1, 1);
-  color.setHex(pick(pineTrunkC));
-  pineTrunk.setColorAt(i, color);
-  color.setHex(pick(pineColors));
-  pineA.setColorAt(i, color);
-  color.setHex(pick(pineColors));
-  pineB.setColorAt(i, color);
-  color.setHex(pick(pineColors));
-  pineC.setColorAt(i, color);
-  addShadow(p.x, p.z, 1.1 * sc);
-}
-for (let i = 0; i < BROAD; i++) {
-  const p = sampleRing(7.5, 64, 3.4) || { x: Math.cos(i + 1) * 22, z: Math.sin(i + 1) * 22 };
-  placed.push(p);
-  const sc = rand(0.8, 1.65);
-  const rot = rand(0, Math.PI * 2);
-  composePart(broadTrunk, i, p.x, p.z, rot, sc, 0, 1.3, 0, 1, 1, 1);
-  composePart(broadA, i, p.x, p.z, rot, sc, 0.15, 3.0, 0.05, 1, 0.85, 1);
-  composePart(broadB, i, p.x, p.z, rot, sc, -0.7, 2.85, 0.35, 0.9, 0.8, 0.9);
-  composePart(broadC, i, p.x, p.z, rot, sc, 0.55, 3.35, -0.45, 0.85, 0.75, 0.85);
-  color.setHex(pick(trunkColors));
-  broadTrunk.setColorAt(i, color);
-  color.setHex(pick(broadColors));
-  broadA.setColorAt(i, color);
-  color.setHex(pick(broadColors));
-  broadB.setColorAt(i, color);
-  color.setHex(pick(broadColors));
-  broadC.setColorAt(i, color);
-  addShadow(p.x, p.z, 1.35 * sc);
-}
-for (let i = 0; i < SAPLING; i++) {
-  const p = sampleRing(7, 40, 2.2) || { x: Math.cos(i + 2) * 14, z: Math.sin(i + 2) * 14 };
-  placed.push(p);
-  const sc = rand(0.7, 1.2);
-  const rot = rand(0, Math.PI * 2);
-  composePart(sapTrunk, i, p.x, p.z, rot, sc, 0, 0.6, 0, 1, 1, 1);
-  composePart(sapLeaf, i, p.x, p.z, rot, sc, 0, 1.35, 0, 1, 1, 1);
-  color.setHex(pick(pineTrunkC));
-  sapTrunk.setColorAt(i, color);
-  color.setHex(pick(pineColors));
-  sapLeaf.setColorAt(i, color);
-  addShadow(p.x, p.z, 0.55 * sc);
-}
-for (let i = 0; i < BUSH; i++) {
-  const p = sampleRing(6.2, 50, 1.6) || { x: Math.cos(i + 3) * 16, z: Math.sin(i + 3) * 16 };
-  const sc = rand(0.55, 1.25);
-  const rot = rand(0, Math.PI * 2);
-  dummy.position.set(p.x, 0.35 * sc, p.z);
-  dummy.rotation.set(0, rot, 0);
-  dummy.scale.set(sc * 1.2, sc * 0.7, sc * 1.1);
-  dummy.updateMatrix();
-  bushMesh.setMatrixAt(i, dummy.matrix);
-  color.setHex(pick([0x2a5a28, 0x3a6a30, 0x245028, 0x4a7a38]));
-  bushMesh.setColorAt(i, color);
-  addShadow(p.x, p.z, 0.7 * sc);
-}
-for (let i = 0; i < ROCK; i++) {
-  const p = sampleRing(6, 48, 1.8) || { x: Math.cos(i + 4) * 18, z: Math.sin(i + 4) * 18 };
-  const sc = rand(0.4, 1.3);
-  dummy.position.set(p.x, 0.16 * sc, p.z);
-  dummy.rotation.set(rand(0, 0.6), rand(0, Math.PI * 2), rand(0, 0.5));
-  dummy.scale.set(sc, sc * rand(0.4, 0.8), sc * rand(0.7, 1.2));
-  dummy.updateMatrix();
-  rockMesh.setMatrixAt(i, dummy.matrix);
-  color.setHex(pick([0x6b6a62, 0x5a5c54, 0x7a7b70, 0x4e5548]));
-  rockMesh.setColorAt(i, color);
-}
-for (let i = 0; i < MUSH; i++) {
-  const p = sampleRing(7, 30, 1.2) || { x: Math.cos(i + 5) * 12, z: Math.sin(i + 5) * 12 };
-  const sc = rand(0.8, 1.5);
-  const rot = rand(0, Math.PI * 2);
-  composePart(mushStem, i, p.x, p.z, rot, sc, 0, 0.06, 0, 1, 1, 1);
-  composePart(mushCap, i, p.x, p.z, rot, sc, 0, 0.14, 0, 1.1, 0.55, 1.1);
-  color.setHex(0xf0e6d0);
-  mushStem.setColorAt(i, color);
-  color.setHex(pick([0xa83232, 0xb5452a, 0x8a1e1e, 0xc9b48a]));
-  mushCap.setColorAt(i, color);
-}
-for (let i = 0; i < GRASS; i++) {
-  const a = rand(0, Math.PI * 2);
-  const r = Math.sqrt(rand(2.2 * 2.2, 28 * 28));
-  const x = Math.cos(a) * r;
-  const z = Math.sin(a) * r;
-  const sc = rand(0.7, 1.6);
-  dummy.position.set(x, 0.2 * sc, z);
-  dummy.rotation.set(rand(-0.15, 0.15), rand(0, Math.PI * 2), rand(-0.15, 0.15));
-  dummy.scale.set(sc, sc, sc);
-  dummy.updateMatrix();
-  grassMesh.setMatrixAt(i, dummy.matrix);
-  color.setHex(pick([0x4a8a3c, 0x3a6e30, 0x5a9a44, 0x6b8a34, 0x3a5a28]));
-  grassMesh.setColorAt(i, color);
-}
-
-[
-  pineTrunk, pineA, pineB, pineC, broadTrunk, broadA, broadB, broadC,
-  sapTrunk, sapLeaf, bushMesh, rockMesh, mushStem, mushCap, grassMesh
-].forEach((m) => { if (m.instanceColor) m.instanceColor.needsUpdate = true; m.instanceMatrix.needsUpdate = true; });
-shadowMesh.instanceMatrix.needsUpdate = true;
-
-const fireflyGeo = new THREE.BufferGeometry();
-const FLY_N = 70;
-const flyPos = new Float32Array(FLY_N * 3);
-const flyBase = [];
-for (let i = 0; i < FLY_N; i++) {
-  const a = rand(0, Math.PI * 2);
-  const r = rand(4, 24);
-  const x = Math.cos(a) * r, z = Math.sin(a) * r, y = rand(0.4, 3.2);
-  flyPos[i * 3] = x; flyPos[i * 3 + 1] = y; flyPos[i * 3 + 2] = z;
-  flyBase.push({ x, y, z, p: rand(0, Math.PI * 2), s: rand(0.4, 1.1) });
-}
-fireflyGeo.setAttribute('position', new THREE.BufferAttribute(flyPos, 3));
-const fireflies = new THREE.Points(
-  fireflyGeo,
-  new THREE.PointsMaterial({
-    color: 0xf6e27a,
-    size: 0.12,
-    transparent: true,
-    opacity: 0.85,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    sizeAttenuation: true,
-  })
-);
-vrGroup.add(fireflies);
-
-function shareMat(hex) { return new THREE.MeshLambertMaterial({ color: hex }); }
-
-const geo = {
-  sphere: new THREE.SphereGeometry(1, 7, 5),
-  cyl: new THREE.CylinderGeometry(1, 1, 1, 5),
-  cone: new THREE.ConeGeometry(1, 1, 5),
-  box: new THREE.BoxGeometry(1, 1, 1),
+const leafUniforms = {
+  map: { value: plantAtlas.texture },
+  time: { value: 0 },
+  fogColor: { value: new THREE.Color(0x16382c) },
+  fogNear: { value: 10 },
+  fogFar: { value: 26 },
+  rustle: { value: new THREE.Vector4(0, 0, 0, 0) },
 };
+const leafMat = new THREE.ShaderMaterial({
+  uniforms: leafUniforms,
+  transparent: false,
+  side: THREE.DoubleSide,
+  depthWrite: true,
+  depthTest: true,
+  vertexShader: `
+    attribute vec4 aUV;
+    attribute vec4 aData;
+    attribute vec3 aTint;
+    uniform float time;
+    uniform vec4 rustle;
+    uniform float fogNear;
+    uniform float fogFar;
+    varying vec2 vUv;
+    varying vec3 vTint;
+    varying float vFog;
+    void main() {
+      vUv = vec2(uv.x * aUV.z + aUV.x, uv.y * aUV.w + aUV.y);
+      vTint = aTint;
+      vec3 center = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+      float sx = length(instanceMatrix[0].xyz);
+      float sy = length(instanceMatrix[1].xyz);
+      vec3 look = normalize(cameraPosition - center);
+      vec3 worldUp = vec3(0.0, 1.0, 0.0);
+      vec3 right = normalize(cross(worldUp, look));
+      if (length(right) < 0.001) right = vec3(1.0, 0.0, 0.0);
+      vec3 up = cross(look, right);
+      float c = cos(aData.z);
+      float s = sin(aData.z);
+      vec3 r2 = right * c + up * s;
+      vec3 u2 = up * c - right * s;
+      float rustleAmt = 0.0;
+      if (rustle.w > 0.0) {
+        float d = length(center - rustle.xyz);
+        rustleAmt = rustle.w * exp(-d * 1.6) * aData.w;
+      }
+      float sway = sin(time * 1.55 + aData.x) * aData.y + sin(time * 3.1 + aData.x * 1.7) * rustleAmt * 0.35;
+      float side = sin(time * 8.0 + aData.x) * rustleAmt * 0.55;
+      vec3 pos = center
+        + r2 * (position.x * sx + (sway + side) * position.y)
+        + u2 * (position.y * sy)
+        + look * (sin(time * 1.2 + aData.x) * aData.y * 0.12 * position.y);
+      vFog = smoothstep(fogNear, fogFar, length(center - cameraPosition));
+      gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D map;
+    uniform vec3 fogColor;
+    varying vec2 vUv;
+    varying vec3 vTint;
+    varying float vFog;
+    void main() {
+      vec4 tex = texture2D(map, vUv);
+      if (tex.a < 0.32) discard;
+      vec3 col = tex.rgb * vTint;
+      col = mix(col, fogColor, vFog * 0.7);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+});
 
-function mesh(g, mat, px, py, pz, sx, sy, sz, rx = 0, ry = 0, rz = 0) {
-  const m = new THREE.Mesh(g, mat);
-  m.position.set(px, py, pz);
-  m.scale.set(sx, sy, sz);
-  m.rotation.set(rx, ry, rz);
+const rustlePoints = [];
+const LEAF_N = 280;
+const leafGeo = new THREE.PlaneGeometry(1, 1);
+leafGeo.translate(0, 0.5, 0);
+const leaves = new THREE.InstancedMesh(leafGeo, leafMat, LEAF_N);
+leaves.frustumCulled = false;
+leaves.matrixAutoUpdate = false;
+
+const aUV = new Float32Array(LEAF_N * 4);
+const aData = new Float32Array(LEAF_N * 4);
+const aTint = new Float32Array(LEAF_N * 3);
+const leafInfo = [];
+const dummy = new THREE.Object3D();
+
+function glowProximity(pos) {
+  const n = pos.clone().normalize();
+  let best = 0;
+  for (const d of GLOW_DIRS) best = Math.max(best, d.dot(n));
+  return best;
+}
+
+function placeLeaf(i, x, y, z, sx, sy, kindPool, tintMul, tilt) {
+  const tile = plantAtlas.tiles[pick(kindPool)];
+  aUV[i*4] = tile.u; aUV[i*4+1] = tile.v; aUV[i*4+2] = tile.su; aUV[i*4+3] = tile.sv;
+  aData[i*4] = rand(0, 6.28);
+  aData[i*4+1] = rand(0.04, 0.16) * sx;
+  aData[i*4+2] = tilt;
+  aData[i*4+3] = rand(0.7, 1.4);
+  aTint[i*3] = tintMul; aTint[i*3+1] = tintMul; aTint[i*3+2] = tintMul * 0.98;
+  dummy.position.set(x, y, z);
+  dummy.scale.set(sx, sy, 1);
+  dummy.rotation.set(0, 0, 0);
+  dummy.updateMatrix();
+  leaves.setMatrixAt(i, dummy.matrix);
+  leafInfo.push({ i, x, y, z, sx, sy, depth: Math.hypot(x, z), yaw: Math.atan2(x, z) });
+}
+
+let li = 0;
+function tryPlace(layer) {
+  const { minD, maxD, y0, y1, scale, n, pool, shade, avoidGlow } = layer;
+  let placed = 0, guard = 0;
+  while (placed < n && guard++ < n * 8 && li < LEAF_N) {
+    const yaw = rand(0, Math.PI * 2);
+    const dep = rand(minD, maxD);
+    const x = Math.sin(yaw) * dep;
+    const z = Math.cos(yaw) * dep;
+    const y = rand(y0, y1);
+    const gp = glowProximity(new THREE.Vector3(x, y, z));
+    if (avoidGlow && gp > avoidGlow && rng() < 0.78) continue;
+    const sc = scale * rand(0.75, 1.35);
+    placeLeaf(li++, x, y, z, sc, sc * rand(0.9, 1.15), pool, shade, rand(-0.45, 0.45));
+    placed++;
+  }
+}
+
+const BRIGHT = [...TILE.ovate, ...TILE.lobed, ...TILE.pinnate, ...TILE.fern, ...TILE.flowers, TILE.cluster[0], TILE.cluster[1]];
+const DARK = [11, 12, 13, 14, 15, ...TILE.branch, ...TILE.cluster];
+tryPlace({ minD:13, maxD:20, y0:-1.2, y1:6.5, scale:3.6, n:88,
+  pool:DARK, shade:0.85, avoidGlow:0.72 });
+tryPlace({ minD:7, maxD:13, y0:-1.0, y1:5.2, scale:2.5, n:78,
+  pool:BRIGHT, shade:1.08, avoidGlow:0.80 });
+tryPlace({ minD:3.6, maxD:7, y0:-0.5, y1:3.6, scale:1.9, n:50,
+  pool:BRIGHT, shade:1.12, avoidGlow:0.86 });
+tryPlace({ minD:2.2, maxD:3.6, y0:-0.3, y1:2.2, scale:1.35, n:24,
+  pool:[...TILE.flowers, ...TILE.fern, TILE.ovate[0], TILE.ovate[1]], shade:1.15, avoidGlow:0.90 });
+while (li < LEAF_N) {
+  tryPlace({ minD:8, maxD:17, y0:-0.8, y1:5.5, scale:2.5, n:1,
+    pool:DARK, shade:0.88, avoidGlow:0.78 });
+}
+
+leaves.geometry.setAttribute('aUV', new THREE.InstancedBufferAttribute(aUV, 4));
+leaves.geometry.setAttribute('aData', new THREE.InstancedBufferAttribute(aData, 4));
+leaves.geometry.setAttribute('aTint', new THREE.InstancedBufferAttribute(aTint, 3));
+leaves.instanceMatrix.needsUpdate = true;
+scene.add(leaves);
+
+const frameGroup = new THREE.Group();
+camera.add(frameGroup);
+const frameMat = new THREE.MeshBasicMaterial({
+  map: plantAtlas.texture, transparent: true, alphaTest: 0.32,
+  side: THREE.DoubleSide, depthWrite: true, depthTest: true,
+});
+const frameLeaves = [];
+function addFrameLeaf(tileIdx, x, y, z, sx, sy, rotZ, sway) {
+  const geo = new THREE.PlaneGeometry(1, 1);
+  geo.translate(0, 0.5, 0);
+  const m = new THREE.Mesh(geo, frameMat.clone());
+  m.material.map = plantAtlas.texture;
+  const t = plantAtlas.tiles[tileIdx];
+  const uv = m.geometry.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, t.u + uv.getX(i) * t.su, t.v + uv.getY(i) * t.sv);
+  uv.needsUpdate = true;
+  m.position.set(x, y, z);
+  m.rotation.z = rotZ;
+  m.scale.set(sx, sy, 1);
+  m.userData = { bx:x, by:y, bz:z, br:rotZ, sway, phase:rand(0, 6.28) };
+  frameGroup.add(m);
+  frameLeaves.push(m);
+}
+const framePlan = [
+  [0, -0.35, 1.05, -1.45, 0.72, 0.62, Math.PI, 0.03],
+  [3, 0.32, 1.08, -1.42, 0.68, 0.58, Math.PI + 0.15, 0.04],
+  [2, 0.62, 0.85, -1.4, 0.6, 0.7, -2.2, 0.03],
+  [4, 0.72, 0.05, -1.38, 0.55, 0.85, -1.55, 0.04],
+  [8, 0.70, -0.7, -1.36, 0.55, 0.7, -0.4, 0.03],
+  [5, 0.22, -1.12, -1.34, 0.62, 0.58, 0.05, 0.04],
+  [1, -0.28, -1.14, -1.34, 0.7, 0.6, -0.1, 0.03],
+  [9, -0.70, -0.65, -1.36, 0.55, 0.72, 0.35, 0.03],
+  [3, -0.72, 0.15, -1.38, 0.55, 0.82, 1.55, 0.04],
+  [7, -0.62, 0.8, -1.42, 0.6, 0.65, 2.3, 0.03],
+  [8, 0.55, 1.02, -1.5, 0.48, 0.5, Math.PI - 0.3, 0.03],
+  [5, -0.5, -1.08, -1.5, 0.5, 0.48, 0.2, 0.03],
+];
+for (const p of framePlan) addFrameLeaf(...p);
+
+const POLE = 80;
+const polePos = new Float32Array(POLE * 3);
+const poleBase = [];
+for (let i = 0; i < POLE; i++) {
+  const dir = pick(GLOW_DIRS).clone();
+  const p = dir.multiplyScalar(rand(6, 18)).add(new THREE.Vector3(rand(-2,2), rand(-1,2), rand(-2,2)));
+  polePos[i*3] = p.x; polePos[i*3+1] = p.y; polePos[i*3+2] = p.z;
+  poleBase.push({ x:p.x, y:p.y, z:p.z, ph:rand(0, 6.28), s:rand(0.4, 1.2) });
+}
+const poleGeo = new THREE.BufferGeometry();
+poleGeo.setAttribute('position', new THREE.BufferAttribute(polePos, 3));
+const pollen = new THREE.Points(poleGeo, new THREE.PointsMaterial({
+  color: 0xf6e9a0, size: 0.08, transparent: true, opacity: 0.75,
+  depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
+}));
+vrGroup.add(pollen);
+const aniMat = new THREE.MeshBasicMaterial({
+  map: animalAtlas.texture, transparent: true, alphaTest: 0.3,
+  side: THREE.DoubleSide, depthWrite: true, depthTest: true,
+});
+
+function makeAniMesh(tileA, tileB, w, h) {
+  const geo = new THREE.PlaneGeometry(w, h);
+  const m = new THREE.Mesh(geo, aniMat.clone());
+  m.material.map = animalAtlas.texture;
+  m.userData.tiles = [tileA, tileB];
+  m.userData.frame = 0;
+  m.userData.baseUV = new Float32Array(m.geometry.attributes.uv.array);
+  applyAniUV(m, 0);
   return m;
 }
-
-function makeDeer(antlers) {
-  const root = new THREE.Group();
-  const fur = shareMat(0x6b4423);
-  const dark = shareMat(0x3d2816);
-  const cream = shareMat(0xd9cbb0);
-  const horn = shareMat(0xc8b89a);
-  const black = shareMat(0x1a120c);
-  const body = mesh(geo.sphere, fur, 0, 0.9, -0.08, 0.34, 0.28, 0.58);
-  root.add(body);
-  const belly = mesh(geo.sphere, cream, 0, 0.74, -0.04, 0.24, 0.16, 0.38);
-  root.add(belly);
-  const neck = mesh(geo.cyl, fur, 0, 1.16, 0.38, 0.08, 0.46, 0.08, 0.85, 0, 0);
-  root.add(neck);
-  const head = mesh(geo.sphere, fur, 0, 1.34, 0.68, 0.18, 0.16, 0.26);
-  root.add(head);
-  root.add(mesh(geo.sphere, dark, 0, 1.26, 0.90, 0.08, 0.06, 0.12));
-  root.add(mesh(geo.sphere, black, 0, 1.25, 0.98, 0.035, 0.03, 0.035));
-  root.add(mesh(geo.sphere, black, 0.07, 1.40, 0.86, 0.03, 0.035, 0.03));
-  root.add(mesh(geo.sphere, black, -0.07, 1.40, 0.86, 0.03, 0.035, 0.03));
-  root.add(mesh(geo.cone, cream, 0.09, 1.50, 0.62, 0.045, 0.14, 0.035, 0, 0, 0.35));
-  root.add(mesh(geo.cone, cream, -0.09, 1.50, 0.62, 0.045, 0.14, 0.035, 0, 0, -0.35));
-  if (antlers) {
-    const L = mesh(geo.cyl, horn, 0.08, 1.62, 0.62, 0.02, 0.32, 0.02, 0, 0, 0.22);
-    const R = mesh(geo.cyl, horn, -0.08, 1.62, 0.62, 0.02, 0.32, 0.02, 0, 0, -0.22);
-    L.add(mesh(geo.cyl, horn, 0.1, 0.1, 0, 1, 0.55, 1, 0, 0, 1.15));
-    R.add(mesh(geo.cyl, horn, -0.1, 0.1, 0, 1, 0.55, 1, 0, 0, -1.15));
-    root.add(L, R);
-  }
-  const legs = [];
-  const spots = [[0.14, 0.38, 0.18], [-0.14, 0.38, 0.18], [0.14, 0.38, -0.32], [-0.14, 0.38, -0.32]];
-  for (const s of spots) {
-    const leg = mesh(geo.cyl, dark, s[0], s[1], s[2], 0.045, 0.72, 0.045);
-    root.add(leg);
-    legs.push(leg);
-  }
-  root.add(mesh(geo.cone, fur, 0, 0.92, -0.62, 0.06, 0.16, 0.06, 1.2, 0, 0));
-  root.userData.legs = legs;
-  root.userData.body = body;
-  return root;
+function applyAniUV(mesh, frame) {
+  const t = animalAtlas.tiles[mesh.userData.tiles[frame]];
+  const uv = mesh.geometry.attributes.uv;
+  const b = mesh.userData.baseUV;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, t.u + b[i*2] * t.su, t.v + b[i*2+1] * t.sv);
+  uv.needsUpdate = true;
+  mesh.userData.frame = frame;
 }
 
-function makeRabbit() {
-  const root = new THREE.Group();
-  const fur = shareMat(0xcbb79a);
-  const pink = shareMat(0xe8b3ad);
-  const dark = shareMat(0x4a3a2a);
-  const black = shareMat(0x1a120c);
-  const body = mesh(geo.sphere, fur, 0, 0.28, -0.04, 0.18, 0.16, 0.22);
-  root.add(body);
-  const head = mesh(geo.sphere, fur, 0, 0.46, 0.20, 0.14, 0.13, 0.15);
-  root.add(head);
-  root.add(mesh(geo.sphere, black, 0.05, 0.50, 0.31, 0.025, 0.03, 0.025));
-  root.add(mesh(geo.sphere, black, -0.05, 0.50, 0.31, 0.025, 0.03, 0.025));
-  root.add(mesh(geo.sphere, pink, 0, 0.44, 0.34, 0.035, 0.028, 0.035));
-  const earL = mesh(geo.sphere, fur, 0.06, 0.72, 0.16, 0.035, 0.18, 0.03, 0, 0, 0.12);
-  const earR = mesh(geo.sphere, fur, -0.06, 0.72, 0.16, 0.035, 0.18, 0.03, 0, 0, -0.12);
-  earL.add(mesh(geo.sphere, pink, 0, 0, 0.4, 0.5, 0.7, 0.3));
-  earR.add(mesh(geo.sphere, pink, 0, 0, 0.4, 0.5, 0.7, 0.3));
-  root.add(earL, earR);
-  root.add(mesh(geo.sphere, shareMat(0xf4f0ea), 0, 0.28, -0.24, 0.07, 0.07, 0.07));
-  const legs = [];
-  for (const s of [[0.08, 0.08, 0.1], [-0.08, 0.08, 0.1], [0.09, 0.1, -0.1], [-0.09, 0.1, -0.1]]) {
-    const leg = mesh(geo.sphere, dark, s[0], s[1], s[2], 0.05, 0.08, 0.06);
-    root.add(leg);
-    legs.push(leg);
-  }
-  root.userData.legs = legs;
-  root.userData.body = body;
-  root.userData.ears = [earL, earR];
-  return root;
+const dens = [];
+function addDen(yaw, y, depth) {
+  const x = Math.sin(yaw) * depth;
+  const z = Math.cos(yaw) * depth;
+  dens.push({
+    yaw, y, depth,
+    pos: new THREE.Vector3(x, y, z),
+    layer: depth < 3.8 ? 'near' : depth < 8 ? 'mid' : 'far',
+  });
+}
+for (let i = 0; i < 20; i++) {
+  const yaw = (i / 20) * Math.PI * 2 + rand(-0.12, 0.12);
+  const layerPick = rng();
+  const depth = layerPick < 0.35 ? rand(2.3, 3.6) : layerPick < 0.75 ? rand(4.5, 7.5) : rand(8, 12);
+  addDen(yaw, rand(0.4, depth < 4 ? 1.8 : 2.6), depth);
 }
 
-function makeFox() {
-  const root = new THREE.Group();
-  const fur = shareMat(0xc45e26);
-  const white = shareMat(0xf3efe6);
-  const dark = shareMat(0x2a1c14);
-  const black = shareMat(0x1a120c);
-  const body = mesh(geo.sphere, fur, 0, 0.42, -0.04, 0.22, 0.16, 0.36);
-  root.add(body);
-  root.add(mesh(geo.sphere, white, 0, 0.32, 0.02, 0.14, 0.1, 0.20));
-  const head = mesh(geo.sphere, fur, 0, 0.58, 0.34, 0.14, 0.12, 0.16);
-  root.add(head);
-  root.add(mesh(geo.cone, fur, 0, 0.52, 0.52, 0.07, 0.18, 0.07, 1.15, 0, 0));
-  root.add(mesh(geo.sphere, black, 0, 0.50, 0.62, 0.035, 0.03, 0.035));
-  root.add(mesh(geo.sphere, black, 0.06, 0.62, 0.44, 0.025, 0.03, 0.025));
-  root.add(mesh(geo.sphere, black, -0.06, 0.62, 0.44, 0.025, 0.03, 0.025));
-  root.add(mesh(geo.cone, dark, 0.08, 0.74, 0.30, 0.04, 0.12, 0.03, 0, 0, 0.3));
-  root.add(mesh(geo.cone, dark, -0.08, 0.74, 0.30, 0.04, 0.12, 0.03, 0, 0, -0.3));
-  const tail = mesh(geo.sphere, fur, 0, 0.48, -0.42, 0.1, 0.09, 0.28);
-  tail.add(mesh(geo.sphere, white, 0, 0, -0.8, 0.6, 0.6, 0.35));
-  root.add(tail);
-  const legs = [];
-  for (const s of [[0.1, 0.18, 0.16], [-0.1, 0.18, 0.16], [0.1, 0.18, -0.18], [-0.1, 0.18, -0.18]]) {
-    const leg = mesh(geo.cyl, dark, s[0], s[1], s[2], 0.035, 0.36, 0.035);
-    root.add(leg);
-    legs.push(leg);
-  }
-  root.userData.legs = legs;
-  root.userData.body = body;
-  root.userData.tail = tail;
-  return root;
-}
-
-function makeBird(col) {
-  const root = new THREE.Group();
-  const feather = shareMat(col);
-  const beak = shareMat(0xe0a040);
-  const body = mesh(geo.sphere, feather, 0, 0, 0, 0.09, 0.07, 0.13);
-  root.add(body);
-  root.add(mesh(geo.cone, beak, 0, -0.01, 0.14, 0.025, 0.08, 0.025, 1.2, 0, 0));
-  const wingL = mesh(geo.sphere, feather, 0.08, 0.01, 0, 0.1, 0.025, 0.06, 0, 0, 0.2);
-  const wingR = mesh(geo.sphere, feather, -0.08, 0.01, 0, 0.1, 0.025, 0.06, 0, 0, -0.2);
-  root.add(wingL, wingR);
-  root.add(mesh(geo.cone, feather, 0, 0, -0.12, 0.03, 0.08, 0.03, 1.7, 0, 0));
-  root.userData.wings = [wingL, wingR];
-  return root;
-}
-
-function lerpAng(a, b, t) {
-  let d = b - a;
-  while (d > Math.PI) d -= Math.PI * 2;
-  while (d < -Math.PI) d += Math.PI * 2;
-  return a + d * t;
+function camDirTo(p) {
+  const c = camera.position;
+  const d = new THREE.Vector3(p.x - c.x, p.y - c.y, p.z - c.z);
+  if (d.lengthSq() < 1e-5) return new THREE.Vector3(0, 0, -1);
+  return d.normalize();
 }
 
 const animals = [];
 
-function addLand(kind, root, x, z, speed) {
-  root.position.set(x, 0, z);
+function makeAnimal(kind) {
+  let tiles, w, h, speed;
+  if (kind === 'deer') { tiles = rng() < 0.55 ? ANI.deerA : ANI.deer; w = 1.7; h = 1.7; speed = 0.9; }
+  else if (kind === 'rabbit') { tiles = ANI.rabbit; w = 0.95; h = 0.95; speed = 1.15; }
+  else if (kind === 'fox') { tiles = ANI.fox; w = 1.25; h = 1.25; speed = 1.2; }
+  else if (kind === 'butterfly') { tiles = ANI.butterfly; w = 0.45; h = 0.45; speed = 1.6; }
+  else { tiles = ANI.bird; w = 0.5; h = 0.5; speed = 2.2; }
+  const mesh = makeAniMesh(tiles[0], tiles[1], w, h);
+  const root = new THREE.Group();
+  root.add(mesh);
   scene.add(root);
-  const yaw = rand(0, Math.PI * 2);
-  root.rotation.y = yaw;
+  const den = pick(dens);
   const a = {
-    kind, root, yaw, speed,
-    moving: true,
-    animT: rand(0, 10),
-    idle: 0,
-    target: new THREE.Vector3(x, 0, z),
+    kind, root, mesh, speed, w, h,
+    state: 'hidden', timer: rand(0.6, 8), phase: 0,
+    den, dest: den,
+    pos: den.pos.clone(), from: den.pos.clone(), to: den.pos.clone(),
+    yaw: den.yaw, flip: 1, walkT: 0, peekSide: 1,
   };
-  pickTarget(a, true);
+  placeHidden(a, den);
   animals.push(a);
   return a;
 }
 
-function pickTarget(a, first) {
-  const roll = rng();
-  let r, ang;
-  if (roll < 0.18 && !first) {
-    ang = rand(0, Math.PI * 2);
-    r = rand(2.8, 5.5);
-  } else if (roll < 0.45) {
-    const cur = Math.hypot(a.root.position.x, a.root.position.z) || 12;
-    ang = Math.atan2(a.root.position.x, a.root.position.z) + rand(0.6, 1.6) * (rng() < 0.5 ? 1 : -1);
-    r = THREE.MathUtils.clamp(cur + rand(-4, 4), 6, 28);
-  } else {
-    ang = rand(0, Math.PI * 2);
-    r = rand(8, 26);
+function placeHidden(a, den) {
+  a.den = den;
+  a.pos.copy(den.pos).addScaledVector(camDirTo(den.pos), 0.55 + a.w * 0.15);
+  a.root.position.copy(a.pos);
+  a.root.visible = false;
+  a.root.scale.setScalar(1);
+  a.state = 'hidden';
+}
+
+function peekPos(den, side, kind) {
+  const dir = camDirTo(den.pos);
+  const up = new THREE.Vector3(0, 1, 0);
+  let right = new THREE.Vector3().crossVectors(up, dir);
+  if (right.lengthSq() < 1e-5) right.set(1, 0, 0);
+  right.normalize();
+  const out = kind === 'rabbit' ? 0.25 : 0.4;
+  return den.pos.clone()
+    .addScaledVector(right, side * (0.28 + out))
+    .addScaledVector(dir, -0.15)
+    .add(new THREE.Vector3(0, kind === 'deer' ? 0.05 : 0.02, 0));
+}
+function outPos(den, side, kind) {
+  const dir = camDirTo(den.pos);
+  const up = new THREE.Vector3(0, 1, 0);
+  let right = new THREE.Vector3().crossVectors(up, dir);
+  if (right.lengthSq() < 1e-5) right.set(1, 0, 0);
+  right.normalize();
+  return den.pos.clone()
+    .addScaledVector(right, side * 0.45)
+    .addScaledVector(dir, -0.7)
+    .add(new THREE.Vector3(0, 0.02, 0));
+}
+
+function faceCameraBillboard(obj) {
+  const p = obj.position;
+  obj.rotation.y = Math.atan2(camera.position.x - p.x, camera.position.z - p.z);
+}
+
+function rustleAt(pos, strength) {
+  rustlePoints.push({ pos: pos.clone(), s: strength, life: 0.8 });
+}
+
+function startPeek(a) {
+  a.state = 'peek';
+  a.phase = 0;
+  a.peekSide = rng() < 0.5 ? -1 : 1;
+  a.from.copy(a.den.pos).addScaledVector(camDirTo(a.den.pos), 0.5);
+  a.to.copy(peekPos(a.den, a.peekSide, a.kind));
+  a.root.visible = true;
+  a.root.position.copy(a.from);
+  a.flip = a.to.x >= a.from.x ? 1 : -1;
+  rustleAt(a.den.pos, 1.1);
+}
+function startOut(a) {
+  a.state = 'out';
+  a.phase = 0;
+  a.from.copy(a.root.position);
+  a.to.copy(outPos(a.den, a.peekSide, a.kind));
+  rustleAt(a.den.pos, 1.3);
+}
+function startWander(a) {
+  a.state = 'wander';
+  a.timer = rand(1.8, 4.2);
+  a.walkT = 0;
+  a.yaw = Math.atan2(a.root.position.x, a.root.position.z);
+  a.turn = (rng() < 0.5 ? -1 : 1) * rand(0.18, 0.4);
+  a.depth = Math.hypot(a.root.position.x, a.root.position.z);
+  a.yKeep = a.root.position.y;
+  a.flip = a.turn > 0 ? 1 : -1;
+}
+function startPause(a) {
+  a.state = 'pause';
+  a.timer = rand(0.8, 2.2);
+}
+function startLeave(a) {
+  let best = a.den, bestD = 0;
+  for (const d of dens) {
+    if (d === a.den) continue;
+    const dd = d.pos.distanceTo(a.root.position);
+    if (dd > 1.2 && dd < 7 && (best === a.den || dd < bestD)) { best = d; bestD = dd; }
   }
-  a.target.set(Math.sin(ang) * r, 0, Math.cos(ang) * r);
+  if (best === a.den) best = pick(dens);
+  a.dest = best;
+  a.state = 'leave';
+  a.phase = 0;
+  a.from.copy(a.root.position);
+  a.to.copy(best.pos).addScaledVector(camDirTo(best.pos), 0.55);
+  a.flip = a.to.x >= a.from.x ? 1 : -1;
+  rustleAt(best.pos, 1.0);
+}
+function finishHide(a) {
+  placeHidden(a, a.dest || a.den);
+  a.timer = rand(2.5, 10);
 }
 
-const showcase = [
-  { kind: 'deer', x: -3.4, z: -9.0, antlers: true },
-  { kind: 'deer', x: -6.2, z: -12.0, antlers: false },
-  { kind: 'rabbit', x: -1.8, z: -5.2 },
-  { kind: 'rabbit', x: -4.1, z: -6.6 },
-  { kind: 'fox', x: -5.4, z: -7.8 },
-];
-for (const s of showcase) {
-  if (s.kind === 'deer') addLand('deer', makeDeer(s.antlers), s.x, s.z, rand(1.1, 1.6));
-  if (s.kind === 'rabbit') addLand('rabbit', makeRabbit(), s.x, s.z, rand(1.4, 2.0));
-  if (s.kind === 'fox') addLand('fox', makeFox(), s.x, s.z, rand(1.5, 2.2));
-}
-for (let i = 0; i < 5; i++) {
-  const a = rand(0, Math.PI * 2), r = rand(10, 24);
-  addLand('deer', makeDeer(rng() < 0.55), Math.sin(a) * r, Math.cos(a) * r, rand(1.0, 1.7));
-}
-for (let i = 0; i < 7; i++) {
-  const a = rand(0, Math.PI * 2), r = rand(7, 20);
-  addLand('rabbit', makeRabbit(), Math.sin(a) * r, Math.cos(a) * r, rand(1.3, 2.1));
-}
-for (let i = 0; i < 4; i++) {
-  const a = rand(0, Math.PI * 2), r = rand(9, 22);
-  addLand('fox', makeFox(), Math.sin(a) * r, Math.cos(a) * r, rand(1.4, 2.3));
+for (let i = 0; i < 5; i++) makeAnimal('deer');
+for (let i = 0; i < 6; i++) makeAnimal('rabbit');
+for (let i = 0; i < 4; i++) makeAnimal('fox');
+for (let i = 0; i < 7; i++) makeAnimal('butterfly');
+for (let i = 0; i < 5; i++) makeAnimal('bird');
+
+function flyPath(a, dt) {
+  if (a.state === 'hidden') {
+    a.timer -= dt;
+    if (a.timer <= 0) {
+      a.state = 'wander';
+      a.timer = rand(3, 7);
+      a.root.visible = true;
+      a.depth = a.den.depth;
+      a.yaw = a.den.yaw;
+      a.yKeep = a.den.y + (a.kind === 'butterfly' ? rand(0.2, 1.4) : rand(0.8, 2.2));
+      a.turn = (rng() < 0.5 ? -1 : 1) * rand(0.3, 0.8);
+      rustleAt(a.den.pos, 0.6);
+    }
+    return;
+  }
+  a.timer -= dt;
+  a.walkT += dt;
+  a.yaw += a.turn * dt * 0.25;
+  const flap = a.kind === 'butterfly' ? 12 : 8;
+  const fr = (a.walkT * flap) % 2 < 1 ? 0 : 1;
+  if (fr !== a.mesh.userData.frame) applyAniUV(a.mesh, fr);
+  const wob = Math.sin(a.walkT * 3.2) * (a.kind === 'butterfly' ? 0.35 : 0.2);
+  a.pos.set(Math.sin(a.yaw) * a.depth, a.yKeep + wob, Math.cos(a.yaw) * a.depth);
+  a.root.position.copy(a.pos);
+  faceCameraBillboard(a.root);
+  a.mesh.scale.x = Math.sign(a.turn) || 1;
+  if (a.timer <= 0) {
+    let best = dens[0], bd = 1e9;
+    for (const d of dens) {
+      const dd = d.pos.distanceTo(a.pos);
+      if (dd < bd) { bd = dd; best = d; }
+    }
+    a.dest = best;
+    a.den = best;
+    rustleAt(best.pos, 0.8);
+    finishHide(a);
+  }
 }
 
-const birdColors = [0x3a3a3a, 0xc45a28, 0x4a6a8a, 0x6b4a2a, 0xd0d5d8];
-for (let i = 0; i < 12; i++) {
-  const root = makeBird(pick(birdColors));
-  scene.add(root);
-  const ang = rand(0, Math.PI * 2);
-  const rad = rand(6, 22);
-  animals.push({
-    kind: 'bird',
-    root,
-    t: rand(0, Math.PI * 2),
-    speed: rand(0.25, 0.55),
-    cx: Math.sin(ang) * rad * 0.3,
-    cz: Math.cos(ang) * rad * 0.3,
-    cy: rand(6.5, 13),
-    rx: rand(5, 14),
-    rz: rand(5, 14),
-    amp: rand(0.4, 1.4),
-  });
-}
-
-function updateAnimals(dt) {
+function updateAnimals(dt, time) {
   for (const a of animals) {
-    if (a.kind === 'bird') {
-      a.t += dt * a.speed;
-      const x = a.cx + Math.cos(a.t) * a.rx;
-      const z = a.cz + Math.sin(a.t) * a.rz;
-      const y = a.cy + Math.sin(a.t * 2.2) * a.amp;
-      a.root.position.set(x, y, z);
-      const tx = x - Math.sin(a.t) * a.rx;
-      const tz = z + Math.cos(a.t) * a.rz;
-      a.root.lookAt(tx, y, tz);
-      const flap = Math.sin(a.t * 22) * 0.7;
-      const wings = a.root.userData.wings;
-      wings[0].rotation.z = 0.2 + flap;
-      wings[1].rotation.z = -0.2 - flap;
+    if (a.kind === 'butterfly' || a.kind === 'bird') { flyPath(a, dt); continue; }
+    if (a.state === 'hidden') {
+      a.timer -= dt;
+      if (a.timer <= 0) startPeek(a);
       continue;
     }
-    a.idle -= dt;
-    const pos = a.root.position;
-    const dx = a.target.x - pos.x;
-    const dz = a.target.z - pos.z;
-    const dist = Math.hypot(dx, dz);
-    if (a.moving && dist < 0.55) {
-      a.moving = false;
-      a.idle = 1.1 + rng() * 2.4;
-    } else if (!a.moving && a.idle <= 0) {
-      a.moving = true;
-      a.idle = 3.5 + rng() * 6;
-      pickTarget(a, false);
+    faceCameraBillboard(a.root);
+    a.mesh.scale.x = a.flip;
+    if (a.state === 'peek' || a.state === 'out' || a.state === 'leave') {
+      const dur = a.state === 'peek' ? 1.15 : a.state === 'out' ? 0.7 : 1.4;
+      a.phase = Math.min(1, a.phase + dt / dur);
+      const t = a.phase * a.phase * (3 - 2 * a.phase);
+      a.pos.lerpVectors(a.from, a.to, t);
+      a.root.position.copy(a.pos);
+      if (a.state === 'leave' && a.phase > 0.75) a.root.scale.setScalar(1 - (a.phase - 0.75) / 0.25 * 0.15);
+      else a.root.scale.setScalar(1);
+      if (a.phase >= 1) {
+        if (a.state === 'peek') { if (rng() < 0.32) startLeave(a); else startOut(a); }
+        else if (a.state === 'out') { if (rng() < 0.45) startPause(a); else startWander(a); }
+        else finishHide(a);
+      }
+      continue;
     }
-    if (a.moving) {
-      const desired = Math.atan2(dx, dz);
-      a.yaw = lerpAng(a.yaw, desired, 1 - Math.exp(-dt * 3.4));
-      a.root.rotation.y = a.yaw;
-      pos.x += Math.sin(a.yaw) * a.speed * dt;
-      pos.z += Math.cos(a.yaw) * a.speed * dt;
-      const d0 = Math.hypot(pos.x, pos.z);
-      if (d0 < 1.6) {
-        pos.x *= 1.6 / d0;
-        pos.z *= 1.6 / d0;
-      }
-      a.animT += dt * (a.kind === 'rabbit' ? 6.2 : 7.4);
-    } else {
-      a.animT += dt * 1.2;
+    if (a.state === 'pause') {
+      a.timer -= dt;
+      a.root.position.y = a.pos.y + Math.sin(time * 2.2) * 0.01;
+      if (a.timer <= 0) { if (rng() < 0.55) startWander(a); else startLeave(a); }
+      continue;
     }
-    const legs = a.root.userData.legs;
-    const body = a.root.userData.body;
-    if (a.kind === 'rabbit') {
-      if (a.moving) {
-        const hop = Math.max(0, Math.sin(a.animT));
-        pos.y = hop * 0.38;
-        if (legs) {
-          for (const leg of legs) leg.scale.y = 0.85 + (1 - hop) * 0.25;
-        }
-      } else {
-        pos.y = 0;
-        if (a.root.userData.ears) {
-          const w = Math.sin(a.animT * 2) * 0.05;
-          a.root.userData.ears[0].rotation.z = 0.15 + w;
-          a.root.userData.ears[1].rotation.z = -0.15 - w;
-        }
-      }
-    } else {
-      pos.y = 0;
-      if (body) body.position.y = (a.kind === 'deer' ? 0.88 : 0.42) + (a.moving ? Math.abs(Math.sin(a.animT)) * 0.03 : 0);
-      if (legs && a.moving) {
-        for (let i = 0; i < legs.length; i++) {
-          legs[i].rotation.x = Math.sin(a.animT + (i % 2 === 0 ? 0 : Math.PI)) * 0.55;
-        }
-      } else if (legs) {
-        for (const leg of legs) leg.rotation.x = 0;
-      }
-      if (a.root.userData.tail) {
-        a.root.userData.tail.rotation.y = Math.sin(a.animT * (a.moving ? 2.2 : 0.8)) * 0.35;
-        a.root.userData.tail.rotation.x = 0.15;
-      }
+    if (a.state === 'wander') {
+      a.timer -= dt;
+      a.walkT += dt;
+      a.yaw += a.turn * a.speed * dt * 0.35;
+      a.pos.set(Math.sin(a.yaw) * a.depth, a.yKeep + Math.abs(Math.sin(a.walkT * 8)) * 0.04, Math.cos(a.yaw) * a.depth);
+      a.root.position.copy(a.pos);
+      const fr = (a.walkT * 6) % 2 < 1 ? 0 : 1;
+      if (fr !== a.mesh.userData.frame) applyAniUV(a.mesh, fr);
+      if (a.timer <= 0) startLeave(a);
     }
   }
 }
-
 const _zee = new THREE.Vector3(0, 0, 1);
 const _euler = new THREE.Euler();
 const _q0 = new THREE.Quaternion();
@@ -992,7 +1402,6 @@ function screenOrientationDeg() {
   if (typeof window.orientation === 'number') return window.orientation;
   return 0;
 }
-
 function applyDeviceOrientation(event) {
   const alpha = event.alpha != null ? THREE.MathUtils.degToRad(event.alpha) : 0;
   const beta = event.beta != null ? THREE.MathUtils.degToRad(event.beta) : 0;
@@ -1005,10 +1414,9 @@ function applyDeviceOrientation(event) {
   camera.quaternion.copy(_qOrient);
 }
 
-let dragging = false;
-let lastX = 0, lastY = 0;
-let yaw = 0.35, pitch = -0.08;
-const dragRot = true;
+let dragging = false, lastX = 0, lastY = 0;
+const LOOK_YAW = Math.atan2(-GLOW_DIRS[0].x, -GLOW_DIRS[0].z);
+let yaw = LOOK_YAW, pitch = 0.10;
 
 function onPointerDown(e) {
   if (gotGyro) return;
@@ -1023,12 +1431,10 @@ function onPointerMove(e) {
   if (x == null) return;
   yaw -= (x - lastX) * 0.005;
   pitch -= (y - lastY) * 0.005;
-  pitch = Math.max(-1.2, Math.min(1.2, pitch));
-  lastX = x;
-  lastY = y;
+  pitch = Math.max(-1.15, Math.min(1.15, pitch));
+  lastX = x; lastY = y;
 }
 function onPointerUp() { dragging = false; }
-
 canvas.addEventListener('pointerdown', onPointerDown);
 window.addEventListener('pointermove', onPointerMove);
 window.addEventListener('pointerup', onPointerUp);
@@ -1043,24 +1449,17 @@ function enableGyroListener() {
   window.addEventListener('deviceorientation', onOrient, true);
   window.addEventListener('deviceorientationabsolute', onOrient, true);
 }
-
 function applyLook() {
-  if (gotGyro && orientEvent) {
-    applyDeviceOrientation(orientEvent);
-  } else {
-    camera.rotation.set(pitch, yaw, 0, 'YXZ');
-  }
-  camera.position.set(0, 1.62, 0);
+  if (gotGyro && orientEvent) applyDeviceOrientation(orientEvent);
+  else camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  camera.position.set(0, 1.5, 0);
 }
 
 async function requestOrientationPermission() {
   try {
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       const res = await DeviceOrientationEvent.requestPermission();
-      if (res === 'granted') {
-        enableGyroListener();
-        return true;
-      }
+      if (res === 'granted') { enableGyroListener(); return true; }
       return false;
     }
     enableGyroListener();
@@ -1070,11 +1469,8 @@ async function requestOrientationPermission() {
     return false;
   }
 }
-
 async function requestCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw new Error('no media');
-  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no media');
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
     audio: false,
@@ -1092,40 +1488,38 @@ function setMode(next) {
   const isAR = mode === 'ar';
   document.body.classList.toggle('is-ar', isAR);
   vrGroup.visible = !isAR;
-  shadowMesh.visible = !isAR;
-  grassMesh.visible = !isAR;
   if (isAR) {
     renderer.setClearColor(0x000000, 0);
-    renderer.toneMapping = THREE.NoToneMapping;
-    scene.fog = null;
-    hemi.intensity = 1.15;
-    sun.intensity = 0.7;
-    amb.intensity = 0.45;
+    leafUniforms.fogNear.value = 40;
+    leafUniforms.fogFar.value = 80;
+    for (const L of leafInfo) {
+      dummy.position.set(L.x, L.y, L.z);
+      dummy.scale.set(L.depth > 10 ? 0 : L.sx, L.depth > 10 ? 0 : L.sy, 1);
+      dummy.updateMatrix();
+      leaves.setMatrixAt(L.i, dummy.matrix);
+    }
+    leaves.instanceMatrix.needsUpdate = true;
     modeBtn.textContent = '純森林模式';
   } else {
-    renderer.setClearColor(0xb7c4a8, 1);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    scene.fog = new THREE.Fog(0xb7c4a8, 22, 78);
-    hemi.intensity = 1.25;
-    sun.intensity = 1.55;
-    amb.intensity = 0.45;
-    modeBtn.textContent = cameraReady ? '鏡頭實境' : '鏡頭實境';
+    renderer.setClearColor(0x0a2a20, 1);
+    leafUniforms.fogNear.value = 10;
+    leafUniforms.fogFar.value = 26;
+    for (const L of leafInfo) {
+      dummy.position.set(L.x, L.y, L.z);
+      dummy.scale.set(L.sx, L.sy, 1);
+      dummy.updateMatrix();
+      leaves.setMatrixAt(L.i, dummy.matrix);
+    }
+    leaves.instanceMatrix.needsUpdate = true;
+    modeBtn.textContent = '鏡頭實境';
   }
 }
 
 modeBtn.addEventListener('click', async () => {
-  if (mode === 'ar') {
-    setMode('vr');
-    return;
-  }
+  if (mode === 'ar') { setMode('vr'); return; }
   if (!cameraReady) {
-    try {
-      await requestCamera();
-      setMode('ar');
-    } catch (err) {
-      toast('無法開啟相機，仍使用純森林模式');
-    }
+    try { await requestCamera(); setMode('ar'); }
+    catch (err) { toast('無法開啟相機，仍使用純森林模式'); }
     return;
   }
   setMode('ar');
@@ -1136,23 +1530,41 @@ function tick(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
   applyLook();
-  updateAnimals(dt);
-  const arr = fireflies.geometry.attributes.position.array;
-  for (let i = 0; i < FLY_N; i++) {
-    const b = flyBase[i];
-    arr[i * 3] = b.x + Math.sin(now * 0.001 * b.s + b.p) * 0.45;
-    arr[i * 3 + 1] = b.y + Math.sin(now * 0.0017 * b.s + b.p * 1.7) * 0.35;
-    arr[i * 3 + 2] = b.z + Math.cos(now * 0.0012 * b.s + b.p) * 0.45;
+  const t = now * 0.001;
+  leafUniforms.time.value = t;
+  if (rustlePoints.length) {
+    let sx = 0, sy = 0, sz = 0, ss = 0, n = 0;
+    for (let i = rustlePoints.length - 1; i >= 0; i--) {
+      const r = rustlePoints[i];
+      r.life -= dt;
+      if (r.life <= 0) { rustlePoints.splice(i, 1); continue; }
+      sx += r.pos.x; sy += r.pos.y; sz += r.pos.z; ss += r.s * (r.life / 0.8); n++;
+    }
+    if (n) leafUniforms.rustle.value.set(sx / n, sy / n, sz / n, ss / n);
+    else leafUniforms.rustle.value.w = 0;
+  } else {
+    leafUniforms.rustle.value.w = 0;
   }
-  fireflies.geometry.attributes.position.needsUpdate = true;
-  fireflies.material.opacity = 0.45 + Math.sin(now * 0.003) * 0.3;
+  for (const m of frameLeaves) {
+    const u = m.userData;
+    m.rotation.z = u.br + Math.sin(t * 1.6 + u.phase) * u.sway;
+    m.position.x = u.bx + Math.sin(t * 1.2 + u.phase) * u.sway * 0.8;
+  }
+  updateAnimals(dt, t);
+  const arr = pollen.geometry.attributes.position.array;
+  for (let i = 0; i < POLE; i++) {
+    const b = poleBase[i];
+    arr[i*3] = b.x + Math.sin(t * b.s + b.ph) * 0.4;
+    arr[i*3+1] = b.y + Math.sin(t * 0.9 * b.s + b.ph * 1.3) * 0.35;
+    arr[i*3+2] = b.z + Math.cos(t * b.s + b.ph) * 0.4;
+  }
+  pollen.geometry.attributes.position.needsUpdate = true;
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 
 function onResize() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const w = window.innerWidth, h = window.innerHeight;
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
@@ -1166,11 +1578,7 @@ async function enterForest(forceVR) {
   enterBtn.textContent = '進入中';
   const gyroOk = forceVR ? (enableGyroListener(), false) : await requestOrientationPermission();
   if (!forceVR) {
-    try {
-      await requestCamera();
-    } catch (err) {
-      cameraReady = false;
-    }
+    try { await requestCamera(); } catch (err) { cameraReady = false; }
   }
   started = true;
   document.body.classList.add('is-in');
@@ -1182,38 +1590,76 @@ async function enterForest(forceVR) {
   }
   startEl.classList.add('gone');
   setTimeout(() => { startEl.style.display = 'none'; }, 850);
-  if (gotGyro || gyroOk) {
-    showHint('轉動手機，環顧這片森林');
-  } else {
+  if (gotGyro || gyroOk) showHint('轉動手機，看看葉子後面會不會探出小動物');
+  else {
     setTimeout(() => {
-      if (!gotGyro) showHint('用手指拖曳畫面，即可轉視角');
-      else showHint('轉動手機，環顧這片森林');
+      showHint(gotGyro ? '轉動手機，看看葉子後面會不會探出小動物' : '用手指拖曳畫面，即可轉視角');
     }, 900);
   }
   requestAnimationFrame(tick);
   document.body.dataset.ready = '1';
+  document.body.dataset.version = '2-illustration';
 }
 
 enterBtn.addEventListener('click', () => enterForest(false));
 
-const params = new URLSearchParams(location.search);
-if (params.get('preview') === '1') {
-  yaw = 0.35;
-  pitch = -0.10;
+function posePreview() {
+  yaw = LOOK_YAW;
+  pitch = 0.10;
   startEl.style.display = 'none';
   document.body.classList.add('is-in');
   setMode('vr');
   started = true;
-  for (const a of animals) {
-    if (a.kind === 'bird') continue;
-    a.moving = false;
-    a.idle = 99;
-    a.target.copy(a.root.position);
-    a.root.rotation.y = a.yaw = Math.atan2(-a.root.position.x, -a.root.position.z);
+  const front = dens
+    .map((d) => ({ d, score: d.pos.clone().normalize().dot(GLOW_DIRS[0]) + (d.depth < 7 ? 0.2 : 0) }))
+    .sort((a, b) => b.score - a.score);
+  const land = animals.filter((a) => a.kind !== 'bird' && a.kind !== 'butterfly');
+  const flyers = animals.filter((a) => a.kind === 'bird' || a.kind === 'butterfly');
+  const roles = ['peek', 'out', 'peek', 'wander', 'pause', 'out'];
+  for (let i = 0; i < Math.min(land.length, front.length, 6); i++) {
+    const a = land[i];
+    const den = front[i].d;
+    a.den = den;
+    a.peekSide = i % 2 === 0 ? -1 : 1;
+    if (roles[i] === 'peek') {
+      startPeek(a);
+      a.phase = 0.85;
+      a.pos.lerpVectors(a.from, a.to, 0.9);
+      a.root.position.copy(a.pos);
+      a.root.visible = true;
+    } else if (roles[i] === 'out' || roles[i] === 'pause') {
+      startOut(a);
+      a.phase = 1;
+      a.root.position.copy(a.to);
+      a.pos.copy(a.to);
+      a.root.visible = true;
+      if (roles[i] === 'pause') startPause(a);
+    } else {
+      a.root.position.copy(outPos(den, a.peekSide, a.kind));
+      a.pos.copy(a.root.position);
+      a.depth = Math.hypot(a.pos.x, a.pos.z);
+      a.yKeep = a.pos.y;
+      a.yaw = Math.atan2(a.pos.x, a.pos.z);
+      a.root.visible = true;
+      startWander(a);
+    }
+  }
+  for (let i = 0; i < flyers.length; i++) {
+    const a = flyers[i];
+    a.state = 'wander';
+    a.timer = 8;
+    a.root.visible = true;
+    a.depth = 6 + (i % 5);
+    a.yaw = LOOK_YAW + (i - 2) * 0.25;
+    a.yKeep = 1.6 + (i % 3) * 0.5;
+    a.turn = i % 2 ? 0.4 : -0.4;
+    a.walkT = i * 0.4;
   }
   requestAnimationFrame(tick);
   document.body.dataset.ready = '1';
+  document.body.dataset.version = '2-illustration';
 }
-  </script>
-</body>
-</html>
+
+const params = new URLSearchParams(location.search);
+if (params.get('preview') === '1') posePreview();
+</script></body></html>
